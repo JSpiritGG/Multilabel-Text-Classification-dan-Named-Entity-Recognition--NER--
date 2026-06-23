@@ -275,8 +275,6 @@ with st.sidebar:
     page = st.radio(
         "📑 Pilih Halaman",
         [
-            "🏠 Beranda",
-            "📊 Eksplorasi Data",
             "🏷️ Multilabel Classification",
             "📛 Named Entity Recognition",
             "🚀 Demo Prediksi",
