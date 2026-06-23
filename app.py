@@ -242,32 +242,28 @@ st.markdown("""
 @st.cache_data
 def load_data():
     """Load preprocessed datasets."""
-    base_path = os.path.join(os.path.dirname(__file__), '..', 'data')
-    train_df = pd.read_csv(os.path.join(base_path, 'train_preprocess.csv'))
-    valid_df = pd.read_csv(os.path.join(base_path, 'valid_preprocess.csv'))
-    test_df = pd.read_csv(os.path.join(base_path, 'test_preprocess.csv'))
+    base_path = os.path.join(os.path.dirname(__file__), 'dataset')
+    train_df = pd.read_csv(os.path.join(base_path, 'Kelp2_multilabel_train.csv'))
+    valid_df = pd.read_csv(os.path.join(base_path, 'Kelp2_multilabel_val.csv'))
+    test_df = pd.read_csv(os.path.join(base_path, 'Kelp2_multilabel_test.csv'))
     return train_df, valid_df, test_df
 
 
-ASPECT_COLUMNS = ['fuel', 'machine', 'others', 'part', 'price', 'service']
-SENTIMENT_LABELS = ['positive', 'negative', 'neutral']
+ASPECT_COLUMNS = ['PRODUCT', 'PRICE', 'PLACE', 'PROMOTION']
+SENTIMENT_LABELS = ['POSITIVE', 'NEGATIVE', 'NEUTRAL']
 
 ASPECT_DESCRIPTIONS = {
-    'fuel': '⛽ Bahan Bakar (Fuel)',
-    'machine': '⚙️ Mesin (Machine)',
-    'others': '🚗 Keseluruhan (Others)',
-    'part': '🔧 Bagian/Fitur (Part)',
-    'price': '💰 Harga (Price)',
-    'service': '🛠️ Layanan (Service)',
+    'PRODUCT': '👕 Produk (Product)',
+    'PRICE': '💰 Harga (Price)',
+    'PLACE': '🏪 Tempat/Toko (Place)',
+    'PROMOTION': '🏷️ Promosi (Promotion)'
 }
 
 ASPECT_COLORS = {
-    'fuel': '#f5576c',
-    'machine': '#4facfe',
-    'others': '#43e97b',
-    'part': '#fa709a',
-    'price': '#a18cd1',
-    'service': '#fcb69f',
+    'PRODUCT': '#4facfe',
+    'PRICE': '#a18cd1',
+    'PLACE': '#43e97b',
+    'PROMOTION': '#fa709a'
 }
 
 
@@ -489,7 +485,7 @@ elif page == "📊 Eksplorasi Data":
         import plotly.express as px
         import plotly.graph_objects as go
 
-        train_df['word_count'] = train_df['sentence'].apply(lambda x: len(str(x).split()))
+        train_df['word_count'] = train_df['text'].apply(lambda x: len(str(x).split()))
 
         fig = px.histogram(
             train_df, x='word_count', nbins=30,
@@ -515,12 +511,13 @@ elif page == "📊 Eksplorasi Data":
         # Count sentiment distribution for each aspect
         sentiment_data = []
         for aspect in ASPECT_COLUMNS:
-            counts = train_df[aspect].value_counts()
             for sentiment in SENTIMENT_LABELS:
+                col_name = f"{aspect}_{sentiment}"
+                count = train_df[col_name].sum() if col_name in train_df.columns else 0
                 sentiment_data.append({
                     'Aspek': ASPECT_DESCRIPTIONS.get(aspect, aspect),
                     'Sentimen': sentiment.capitalize(),
-                    'Jumlah': counts.get(sentiment, 0)
+                    'Jumlah': count
                 })
 
         sentiment_df = pd.DataFrame(sentiment_data)
@@ -553,9 +550,14 @@ elif page == "📊 Eksplorasi Data":
 
         heatmap_data = []
         for aspect in ASPECT_COLUMNS:
-            pos_count = (train_df[aspect] == 'positive').sum()
-            neg_count = (train_df[aspect] == 'negative').sum()
-            neu_count = (train_df[aspect] == 'neutral').sum()
+            pos_col = f"{aspect}_POSITIVE"
+            neg_col = f"{aspect}_NEGATIVE"
+            neu_col = f"{aspect}_NEUTRAL"
+            
+            pos_count = train_df[pos_col].sum() if pos_col in train_df.columns else 0
+            neg_count = train_df[neg_col].sum() if neg_col in train_df.columns else 0
+            neu_count = train_df[neu_col].sum() if neu_col in train_df.columns else 0
+            
             heatmap_data.append([pos_count, neg_count, neu_count])
 
         heatmap_df = pd.DataFrame(
@@ -583,7 +585,12 @@ elif page == "📊 Eksplorasi Data":
 
         binary_df = pd.DataFrame()
         for aspect in ASPECT_COLUMNS:
-            binary_df[aspect] = (train_df[aspect] != 'neutral').astype(int)
+            pos_col = f"{aspect}_POSITIVE"
+            neg_col = f"{aspect}_NEGATIVE"
+            
+            has_pos = train_df[pos_col] if pos_col in train_df.columns else 0
+            has_neg = train_df[neg_col] if neg_col in train_df.columns else 0
+            binary_df[aspect] = (has_pos | has_neg).astype(int)
 
         co_occurrence = binary_df.T.dot(binary_df)
 
@@ -613,14 +620,18 @@ elif page == "📊 Eksplorasi Data":
         )
         selected_sentiment = st.selectbox(
             "Pilih sentimen:",
-            ['positive', 'negative']
+            ['POSITIVE', 'NEGATIVE']
         )
-
-        filtered = train_df[train_df[selected_aspect] == selected_sentiment]
+        
+        target_col = f"{selected_aspect}_{selected_sentiment}"
+        if target_col in train_df.columns:
+            filtered = train_df[train_df[target_col] == 1]
+        else:
+            filtered = pd.DataFrame()
 
         if len(filtered) > 0:
             from collections import Counter
-            all_words = ' '.join(filtered['sentence'].astype(str)).lower().split()
+            all_words = ' '.join(filtered['text'].astype(str)).lower().split()
             # Remove common stopwords
             stopwords = {'yang', 'dan', 'di', 'ini', 'itu', 'nya', 'untuk', 'saya',
                         'dengan', 'dari', 'ke', 'tidak', 'juga', 'sudah', 'ada',
@@ -649,7 +660,7 @@ elif page == "📊 Eksplorasi Data":
             )
             st.plotly_chart(fig, use_container_width=True)
         else:
-            st.info(f"Tidak ada data untuk aspek **{ASPECT_DESCRIPTIONS[selected_aspect]}** dengan sentimen **{selected_sentiment}**.")
+            st.info(f"Tidak ada data untuk aspek **{ASPECT_DESCRIPTIONS[selected_aspect]}** dengan sentimen **{selected_sentiment.capitalize()}**.")
 
 
 # ════════════════════════════════════════════════════════
@@ -733,54 +744,75 @@ elif page == "🏷️ Multilabel Classification":
                 else:
                     vectorizer = CountVectorizer(max_features=max_features)
 
-                X_train = vectorizer.fit_transform(train_df['sentence'].astype(str))
-                X_valid = vectorizer.transform(valid_df['sentence'].astype(str))
-                X_test = vectorizer.transform(test_df['sentence'].astype(str))
+                X_train = vectorizer.fit_transform(train_df['text'].astype(str))
+                X_valid = vectorizer.transform(valid_df['text'].astype(str))
+                X_test = vectorizer.transform(test_df['text'].astype(str))
 
                 progress_bar.progress(20, text="Fitur berhasil diekstrak...")
 
-                # Train per aspect
-                results = {}
-                all_y_true = []
-                all_y_pred = []
+                # Define target columns
+                target_cols = []
+                for a in ASPECT_COLUMNS:
+                    for s in SENTIMENT_LABELS:
+                        col = f"{a}_{s}"
+                        if col in train_df.columns:
+                            target_cols.append(col)
 
-                for i, aspect in enumerate(ASPECT_COLUMNS):
-                    progress_pct = 20 + int((i + 1) / len(ASPECT_COLUMNS) * 60)
-                    progress_bar.progress(progress_pct, text=f"Training model untuk aspek: {ASPECT_DESCRIPTIONS[aspect]}...")
+                y_train = train_df[target_cols].values
+                y_test = test_df[target_cols].values
 
-                    y_train = train_df[aspect]
-                    y_test = test_df[aspect]
+                progress_bar.progress(30, text=f"Melatih model dengan {multilabel_strategy}...")
+                
+                try:
+                    from skmultilearn.problem_transform import BinaryRelevance, ClassifierChain, LabelPowerset
+                except ImportError:
+                    st.error("Library scikit-multilearn belum terinstall. Pastikan sudah menjalankan `pip install scikit-multilearn`.")
+                    st.stop()
 
-                    # Choose model
-                    if model_type == "Support Vector Machine (SVM)":
-                        clf = LinearSVC(max_iter=10000, random_state=42)
-                    elif model_type == "Random Forest":
-                        clf = RandomForestClassifier(n_estimators=100, random_state=42, n_jobs=-1)
-                    elif model_type == "Logistic Regression":
-                        clf = LogisticRegression(max_iter=1000, random_state=42)
-                    else:
-                        if feature_method.startswith("TF-IDF"):
-                            from sklearn.naive_bayes import ComplementNB
-                            clf = ComplementNB()
-                        else:
-                            clf = MultinomialNB()
+                # Choose base model
+                if model_type == "Support Vector Machine (SVM)":
+                    base_clf = LinearSVC(max_iter=10000, random_state=42)
+                elif model_type == "Random Forest":
+                    base_clf = RandomForestClassifier(n_estimators=100, random_state=42, n_jobs=-1)
+                elif model_type == "Logistic Regression":
+                    base_clf = LogisticRegression(max_iter=1000, random_state=42)
+                else:
+                    base_clf = MultinomialNB()
 
-                    clf.fit(X_train, y_train)
-                    y_pred = clf.predict(X_test)
+                if multilabel_strategy == "Binary Relevance":
+                    clf = BinaryRelevance(base_clf)
+                elif multilabel_strategy == "Classifier Chain":
+                    clf = ClassifierChain(base_clf)
+                else:
+                    clf = LabelPowerset(base_clf)
 
-                    report = classification_report(y_test, y_pred, output_dict=True, zero_division=0)
-                    results[aspect] = {
-                        'accuracy': accuracy_score(y_test, y_pred),
-                        'f1_macro': f1_score(y_test, y_pred, average='macro', zero_division=0),
-                        'f1_weighted': f1_score(y_test, y_pred, average='weighted', zero_division=0),
-                        'precision': precision_score(y_test, y_pred, average='weighted', zero_division=0),
-                        'recall': recall_score(y_test, y_pred, average='weighted', zero_division=0),
-                        'report': report,
-                        'y_true': y_test.tolist(),
-                        'y_pred': y_pred.tolist(),
-                    }
+                clf.fit(X_train, y_train)
+                y_pred = clf.predict(X_test)
+                
+                # Convert sparse matrix to dense array if needed
+                if hasattr(y_pred, 'toarray'):
+                    y_pred_array = y_pred.toarray()
+                else:
+                    y_pred_array = np.array(y_pred)
 
-                progress_bar.progress(90, text="Menghitung metrik keseluruhan...")
+                progress_bar.progress(90, text="Menghitung metrik evaluasi...")
+                
+                report = classification_report(y_test, y_pred_array, target_names=target_cols, output_dict=True, zero_division=0)
+                
+                results = {
+                    'accuracy': accuracy_score(y_test, y_pred_array),
+                    'f1_macro': f1_score(y_test, y_pred_array, average='macro', zero_division=0),
+                    'f1_weighted': f1_score(y_test, y_pred_array, average='weighted', zero_division=0),
+                    'precision': precision_score(y_test, y_pred_array, average='weighted', zero_division=0),
+                    'recall': recall_score(y_test, y_pred_array, average='weighted', zero_division=0),
+                    'hamming_loss': hamming_loss(y_test, y_pred_array),
+                    'report': report,
+                    'y_true': y_test.tolist(),
+                    'y_pred': y_pred_array.tolist(),
+                    'target_cols': target_cols,
+                    'model': clf
+                }
+
                 time.sleep(0.5)
                 progress_bar.progress(100, text="✅ Training selesai!")
                 time.sleep(0.3)
@@ -801,114 +833,95 @@ elif page == "🏷️ Multilabel Classification":
             st.info("⚡ Belum ada model yang dilatih. Silakan konfigurasi dan latih model di tab **Konfigurasi & Training**.")
         else:
             results = st.session_state['classification_results']
+            target_cols = results['target_cols']
+            report = results['report']
 
             # Overview metrics
             st.markdown(f"**Model:** {st.session_state.get('model_type', 'N/A')} | **Fitur:** {st.session_state.get('feature_method', 'N/A')}")
 
+            col1, col2, col3, col4 = st.columns(4)
+            with col1:
+                st.metric("Exact Match Accuracy", f"{results['accuracy']:.4f}")
+            with col2:
+                st.metric("F1 Macro", f"{results['f1_macro']:.4f}")
+            with col3:
+                st.metric("F1 Weighted", f"{results['f1_weighted']:.4f}")
+            with col4:
+                st.metric("Hamming Loss", f"{results['hamming_loss']:.4f}")
+
             import plotly.graph_objects as go
 
-            # Metrics per aspect
-            aspect_names = [ASPECT_DESCRIPTIONS[a] for a in ASPECT_COLUMNS]
-            accuracies = [results[a]['accuracy'] for a in ASPECT_COLUMNS]
-            f1_macros = [results[a]['f1_macro'] for a in ASPECT_COLUMNS]
-            f1_weights = [results[a]['f1_weighted'] for a in ASPECT_COLUMNS]
+            # Metrics per target column
+            f1_scores = [report[col]['f1-score'] for col in target_cols]
+            precisions = [report[col]['precision'] for col in target_cols]
+            recalls = [report[col]['recall'] for col in target_cols]
 
             fig = go.Figure()
-            fig.add_trace(go.Bar(name='Accuracy', x=aspect_names, y=accuracies,
-                                marker_color='#667eea'))
-            fig.add_trace(go.Bar(name='F1 Macro', x=aspect_names, y=f1_macros,
-                                marker_color='#764ba2'))
-            fig.add_trace(go.Bar(name='F1 Weighted', x=aspect_names, y=f1_weights,
-                                marker_color='#f093fb'))
+            fig.add_trace(go.Bar(name='F1-Score', x=target_cols, y=f1_scores, marker_color='#667eea'))
+            fig.add_trace(go.Bar(name='Precision', x=target_cols, y=precisions, marker_color='#764ba2'))
+            fig.add_trace(go.Bar(name='Recall', x=target_cols, y=recalls, marker_color='#f093fb'))
+            
             fig.update_layout(
                 barmode='group',
-                title='Perbandingan Metrik per Aspek',
+                title='Metrik per Target Aspek-Sentimen',
                 yaxis=dict(range=[0, 1], title='Skor'),
                 plot_bgcolor='rgba(0,0,0,0)',
                 paper_bgcolor='rgba(0,0,0,0)',
                 font=dict(family='Inter'),
                 title_font=dict(size=16, color='#312e81'),
                 legend=dict(orientation="h", yanchor="bottom", y=1.02, xanchor="right", x=1),
-                height=450,
+                height=500,
+                xaxis_tickangle=-45
             )
             st.plotly_chart(fig, use_container_width=True)
 
             # Summary table
             summary_data = []
-            for aspect in ASPECT_COLUMNS:
-                r = results[aspect]
+            for col in target_cols:
                 summary_data.append({
-                    'Aspek': ASPECT_DESCRIPTIONS[aspect],
-                    'Accuracy': f"{r['accuracy']:.4f}",
-                    'F1 Macro': f"{r['f1_macro']:.4f}",
-                    'F1 Weighted': f"{r['f1_weighted']:.4f}",
-                    'Precision': f"{r['precision']:.4f}",
-                    'Recall': f"{r['recall']:.4f}",
+                    'Target': col,
+                    'Precision': f"{report[col]['precision']:.4f}",
+                    'Recall': f"{report[col]['recall']:.4f}",
+                    'F1-Score': f"{report[col]['f1-score']:.4f}",
+                    'Support': int(report[col]['support'])
                 })
             summary_df = pd.DataFrame(summary_data)
             st.dataframe(summary_df, use_container_width=True, hide_index=True)
 
-            # Average metrics
-            avg_acc = np.mean(accuracies)
-            avg_f1_macro = np.mean(f1_macros)
-            avg_f1_weighted = np.mean(f1_weights)
-
-            col1, col2, col3 = st.columns(3)
-            with col1:
-                st.metric("Rata-rata Accuracy", f"{avg_acc:.4f}")
-            with col2:
-                st.metric("Rata-rata F1 Macro", f"{avg_f1_macro:.4f}")
-            with col3:
-                st.metric("Rata-rata F1 Weighted", f"{avg_f1_weighted:.4f}")
-
     with tab3:
-        st.markdown('<div class="section-header">🔬 Analisis Detail per Aspek</div>', unsafe_allow_html=True)
+        st.markdown('<div class="section-header">🔬 Analisis Detail per Target</div>', unsafe_allow_html=True)
 
         if 'classification_results' not in st.session_state:
             st.info("⚡ Belum ada model yang dilatih.")
         else:
             results = st.session_state['classification_results']
+            target_cols = results['target_cols']
 
-            selected_aspect_detail = st.selectbox(
-                "Pilih aspek untuk analisis detail:",
-                ASPECT_COLUMNS,
-                format_func=lambda x: ASPECT_DESCRIPTIONS[x],
-                key="detail_aspect"
+            selected_target = st.selectbox(
+                "Pilih target aspek-sentimen untuk analisis detail:",
+                target_cols,
+                key="detail_target"
             )
-
-            report = results[selected_aspect_detail]['report']
-            y_true = results[selected_aspect_detail]['y_true']
-            y_pred = results[selected_aspect_detail]['y_pred']
-
-            # Classification report
-            st.markdown("#### 📋 Classification Report")
-            report_data = []
-            for label in SENTIMENT_LABELS:
-                if label in report:
-                    report_data.append({
-                        'Label': label.capitalize(),
-                        'Precision': f"{report[label]['precision']:.4f}",
-                        'Recall': f"{report[label]['recall']:.4f}",
-                        'F1-Score': f"{report[label]['f1-score']:.4f}",
-                        'Support': int(report[label]['support']),
-                    })
-            report_df = pd.DataFrame(report_data)
-            st.dataframe(report_df, use_container_width=True, hide_index=True)
 
             # Confusion matrix
             st.markdown("#### 🔲 Confusion Matrix")
             from sklearn.metrics import confusion_matrix
-            import plotly.figure_factory as ff
+            import plotly.express as px
 
-            labels = sorted(set(y_true + y_pred))
-            cm = confusion_matrix(y_true, y_pred, labels=labels)
+            target_idx = target_cols.index(selected_target)
+            y_true_col = [row[target_idx] for row in results['y_true']]
+            y_pred_col = [row[target_idx] for row in results['y_pred']]
+
+            labels = [0, 1]
+            cm = confusion_matrix(y_true_col, y_pred_col, labels=labels)
 
             fig = px.imshow(
                 cm,
-                x=labels, y=labels,
+                x=['Predicted 0', 'Predicted 1'], 
+                y=['Actual 0', 'Actual 1'],
                 color_continuous_scale='Blues',
                 text_auto=True,
-                title=f'Confusion Matrix — {ASPECT_DESCRIPTIONS[selected_aspect_detail]}'
+                title=f'Confusion Matrix — {selected_target}'
             )
             fig.update_layout(
                 xaxis_title='Predicted',
@@ -934,41 +947,30 @@ elif page == "📛 Named Entity Recognition":
     # ─── NER Engine ───
     # Known entities database
     BRAND_ENTITIES = {
-        'toyota', 'honda', 'daihatsu', 'suzuki', 'mitsubishi', 'nissan',
-        'yamaha', 'kawasaki', 'wuling', 'mazda', 'bmw', 'isuzu', 'hyundai',
-        'kia', 'mercedes', 'mini', 'esemka', 'ford', 'chevrolet'
+        'zano', 'hos of shopaholic', 'hos', 'shopaholic', 'uniqlo', 'zara',
+        'h&m', 'matahari', 'ramayana', 'borma', 'erigo', '3second', 'greenlight',
+        'levis', 'adidas', 'nike', 'puma', 'champion'
     }
 
     PRODUCT_ENTITIES = {
-        'avanza', 'xenia', 'brio', 'jazz', 'hrv', 'crv', 'mobilio', 'calya',
-        'sigra', 'agya', 'ayla', 'innova', 'fortuner', 'rush', 'terios',
-        'xpander', 'pajero', 'ertiga', 'ignis', 'sirion', 'vario', 'beat',
-        'scoopy', 'nmax', 'aerox', 'mio', 'vios', 'altis', 'camry', 'yaris',
-        'confero', 'cortez', 'almaz', 'formo', 'livina', 'freed', 'lexi',
-        'veloz', 'pcx', 'sonic', 'cbr', 'karimun', 'carry', 'alphard',
-        'panther', 'taruna', 'spacy', 'colt', 'satria', 'athlete', 'revo',
-        'xride', 'prado', 'grandmax', 'splash', 'wagon', 'l300'
+        'baju', 'kaos', 'kemeja', 'celana', 'rok', 'jaket', 'sweater', 'hoodie',
+        'dress', 'gamis', 'tunik', 'blouse', 'jas', 'pakaian', 'outfit', 'jeans',
+        'chino', 'kulot', 'legging', 'kain', 'bahan'
     }
 
     LOCATION_ENTITIES = {
         'jakarta', 'bandung', 'surabaya', 'bali', 'jogja', 'yogyakarta',
         'semarang', 'medan', 'makassar', 'palembang', 'malang', 'solo',
-        'denpasar', 'poso', 'tasikmalaya', 'nagrek', 'dieng', 'sumatra',
-        'jawa', 'kalimantan', 'sulawesi', 'cihampelas', 'balaraja',
-        'sisingamangaraja', 'pondok indah', 'cikampek', 'indonesia',
-        'sukabumi', 'timur'
+        'denpasar', 'tasikmalaya', 'mall', 'plaza', 'toko', 'butik',
+        'outlet', 'store', 'cabang'
     }
 
     ASPECT_TERM_ENTITIES = {
-        'bbm', 'bensin', 'solar', 'bahan bakar', 'konsumsi',
-        'mesin', 'tenaga', 'tarikan', 'akselerasi', 'power', 'torsi',
-        'interior', 'eksterior', 'desain', 'kabin', 'jok', 'dasbor',
-        'dashboard', 'suspensi', 'kaki-kaki', 'rem', 'kopling', 'setir',
-        'ac', 'lampu', 'spion', 'bagasi', 'airbag', 'fitur', 'sparepart',
-        'onderdil', 'suku cadang', 'ban', 'knalpot', 'radiator',
-        'harga', 'pajak', 'purnajual', 'murah', 'mahal', 'irit', 'boros',
-        'servis', 'service', 'bengkel', 'dealer', 'ahass', 'ahas',
-        'perawatan', 'inden', 'booking', 'teknisi', 'mekanik', 'montir'
+        'harga', 'murah', 'mahal', 'diskon', 'promo', 'promosi', 'sale',
+        'kualitas', 'bagus', 'jelek', 'awet', 'luntur', 'sobek', 'jahitan',
+        'pelayanan', 'ramah', 'kasir', 'pramuniaga', 'mbak', 'mas', 'layan',
+        'tempat', 'bersih', 'kotor', 'luas', 'sempit', 'nyaman', 'parkir',
+        'fitting room', 'kamar ganti', 'koleksi', 'lengkap', 'ukuran', 'size'
     }
 
     def extract_entities(text):
@@ -1157,6 +1159,7 @@ elif page == "📛 Named Entity Recognition":
             st.stop()
 
         with st.spinner("Menganalisis entitas dalam seluruh dataset..."):
+        with st.spinner("Menganalisis entitas dalam seluruh dataset..."):
             from collections import Counter
             brand_counter = Counter()
             product_counter = Counter()
@@ -1164,7 +1167,7 @@ elif page == "📛 Named Entity Recognition":
             aspect_counter = Counter()
             entity_type_counts = {'BRAND': 0, 'PRODUCT': 0, 'LOCATION': 0, 'ASPECT': 0}
 
-            for text in all_data['sentence'].astype(str):
+            for text in all_data['text'].astype(str):
                 entities = extract_entities(text)
                 for ent in entities:
                     entity_type_counts[ent['label']] += 1
@@ -1220,7 +1223,7 @@ elif page == "📛 Named Entity Recognition":
                 st.plotly_chart(fig, use_container_width=True)
 
         with col2:
-            st.markdown("#### 🚙 Top Product")
+            st.markdown("#### 👕 Top Product")
             if product_counter:
                 prod_df = pd.DataFrame(product_counter.most_common(10), columns=['Product', 'Count'])
                 fig = px.bar(prod_df, x='Count', y='Product', orientation='h',
@@ -1246,7 +1249,7 @@ elif page == "🚀 Demo Prediksi":
     st.markdown("""
     <div class="hero-container" style="padding: 1.5rem;">
         <h1 style="font-size:1.8rem;">🚀 Demo Prediksi ABSA</h1>
-        <p>Coba prediksi sentimen aspek & NER pada review kendaraan</p>
+        <p>Coba prediksi sentimen aspek & NER pada ulasan toko baju/pakaian</p>
     </div>
     """, unsafe_allow_html=True)
 
@@ -1256,31 +1259,36 @@ elif page == "🚀 Demo Prediksi":
         """Train a quick model for demo purposes."""
         from sklearn.feature_extraction.text import TfidfVectorizer
         from sklearn.svm import LinearSVC
+        from skmultilearn.problem_transform import BinaryRelevance
 
         try:
-            base_path = os.path.join(os.path.dirname(__file__), '..', 'data')
-            train_df = pd.read_csv(os.path.join(base_path, 'train_preprocess.csv'))
+            base_path = os.path.join(os.path.dirname(__file__), 'dataset')
+            train_df = pd.read_csv(os.path.join(base_path, 'Kelp2_multilabel_train.csv'))
         except FileNotFoundError:
-            return None, None
+            return None, None, None
 
         vectorizer = TfidfVectorizer(max_features=5000)
-        X_train = vectorizer.fit_transform(train_df['sentence'].astype(str))
+        X_train = vectorizer.fit_transform(train_df['text'].astype(str))
 
-        models = {}
-        for aspect in ASPECT_COLUMNS:
-            clf = LinearSVC(max_iter=10000, random_state=42)
-            clf.fit(X_train, train_df[aspect])
-            models[aspect] = clf
+        target_cols = []
+        for a in ASPECT_COLUMNS:
+            for s in SENTIMENT_LABELS:
+                col = f"{a}_{s}"
+                if col in train_df.columns:
+                    target_cols.append(col)
 
-        return vectorizer, models
+        clf = BinaryRelevance(LinearSVC(max_iter=10000, random_state=42))
+        clf.fit(X_train, train_df[target_cols].values)
+
+        return vectorizer, clf, target_cols
 
     st.markdown('<div class="section-header">✍️ Masukkan Review</div>', unsafe_allow_html=True)
 
     demo_input = st.text_area(
-        "Tulis review kendaraan di sini:",
+        "Tulis review produk/toko di sini:",
         value="",
         height=120,
-        placeholder="Contoh: Toyota Avanza irit banget bensin nya dan mesin nya bandel. Servis di bengkel resmi juga murah. Sayang harga nya agak mahal.",
+        placeholder="Contoh: Baju nya bagus banget, jahitan rapi, tapi harganya lumayan mahal. Pramuniaganya di store cabang Jakarta ramah.",
         key="demo_input"
     )
 
@@ -1288,9 +1296,9 @@ elif page == "🚀 Demo Prediksi":
     st.markdown("**💡 Atau pilih contoh:**")
     example_cols = st.columns(3)
     examples = [
-        "Honda Beat irit banget bahan bakar nya, mesin halus dan tarikan responsif",
-        "Bengkel Toyota pelayanan nya jelek banget, lama dan mahal",
-        "Xpander desain bagus harga terjangkau tapi mesin kurang bertenaga"
+        "Kaos uniqlo nyaman dipakai, kainnya lembut dan harga diskon lumayan murah",
+        "Pelayanan di toko Zano jelek banget, kasirnya judes dan antrian panjang",
+        "Koleksi dress nya lengkap dengan harga terjangkau, tapi fitting room nya kotor"
     ]
     for col, example in zip(example_cols, examples):
         with col:
@@ -1305,7 +1313,7 @@ elif page == "🚀 Demo Prediksi":
             st.markdown("---")
 
             with st.spinner("🔄 Memproses prediksi..."):
-                vectorizer, models = train_quick_model()
+                vectorizer, clf, target_cols = train_quick_model()
 
                 if vectorizer is None:
                     st.error("Dataset tidak ditemukan untuk training model demo.")
@@ -1313,9 +1321,19 @@ elif page == "🚀 Demo Prediksi":
 
                 # Predict
                 X_input = vectorizer.transform([text_to_analyze])
+                y_pred = clf.predict(X_input)
+                if hasattr(y_pred, 'toarray'):
+                    y_pred = y_pred.toarray()[0]
+                else:
+                    y_pred = np.array(y_pred)[0]
+
                 predictions = {}
-                for aspect in ASPECT_COLUMNS:
-                    predictions[aspect] = models[aspect].predict(X_input)[0]
+                for idx, col in enumerate(target_cols):
+                    if y_pred[idx] == 1:
+                        aspect, sentiment = col.split('_')
+                        if aspect not in predictions:
+                            predictions[aspect] = []
+                        predictions[aspect].append(sentiment.lower())
 
                 # NER
                 entities = extract_entities(text_to_analyze)
@@ -1327,23 +1345,23 @@ elif page == "🚀 Demo Prediksi":
                 st.markdown('<div class="section-header">🏷️ Prediksi Sentimen Aspek</div>', unsafe_allow_html=True)
 
                 for aspect in ASPECT_COLUMNS:
-                    sentiment = predictions[aspect]
+                    sentiments = predictions.get(aspect, [])
                     icon = ASPECT_DESCRIPTIONS[aspect]
 
-                    if sentiment == 'positive':
-                        sent_badge = '<span class="sentiment-positive">✅ Positive</span>'
-                        bar_color = '#00b09b'
-                    elif sentiment == 'negative':
-                        sent_badge = '<span class="sentiment-negative">❌ Negative</span>'
-                        bar_color = '#eb3349'
+                    if len(sentiments) == 0:
+                        sent_badge = '<span class="sentiment-neutral" style="padding: 4px 8px; border-radius: 4px; background: #f3f4f6;">➖ Neutral/None</span>'
                     else:
-                        sent_badge = '<span class="sentiment-neutral">➖ Neutral</span>'
-                        bar_color = '#95a5a6'
+                        sent_badge = ""
+                        for sent in sentiments:
+                            if sent == 'positive':
+                                sent_badge += '<span class="sentiment-positive" style="margin-left: 4px; padding: 4px 8px; border-radius: 4px; background: #d1fae5; color: #065f46;">✅ Positive</span>'
+                            elif sent == 'negative':
+                                sent_badge += '<span class="sentiment-negative" style="margin-left: 4px; padding: 4px 8px; border-radius: 4px; background: #fee2e2; color: #991b1b;">❌ Negative</span>'
 
                     st.markdown(f"""
                     <div class="prediction-card" style="display:flex; justify-content:space-between; align-items:center; padding:0.8rem 1.2rem;">
                         <span style="font-weight:600; font-size:0.95rem;">{icon}</span>
-                        {sent_badge}
+                        <div>{sent_badge}</div>
                     </div>
                     """, unsafe_allow_html=True)
 
@@ -1362,7 +1380,7 @@ elif page == "🚀 Demo Prediksi":
                     for ent in entities:
                         label_colors = {
                             'BRAND': ('🏭', '#dbeafe', '#1e40af'),
-                            'PRODUCT': ('🚙', '#dcfce7', '#166534'),
+                            'PRODUCT': ('👕', '#dcfce7', '#166534'),
                             'LOCATION': ('📍', '#fef3c7', '#92400e'),
                             'ASPECT': ('🏷️', '#f3e8ff', '#6b21a8'),
                         }
@@ -1386,27 +1404,39 @@ elif page == "🚀 Demo Prediksi":
 
             # Sentiment radar chart
             sentiment_scores = []
+            text_labels = []
+            colors = []
             for aspect in ASPECT_COLUMNS:
-                s = predictions[aspect]
-                if s == 'positive':
+                sents = predictions.get(aspect, [])
+                if 'positive' in sents and 'negative' in sents:
+                    sentiment_scores.append(0.5)
+                    text_labels.append("Mixed")
+                    colors.append('#f59e0b')
+                elif 'positive' in sents:
                     sentiment_scores.append(1)
-                elif s == 'negative':
+                    text_labels.append("Positive")
+                    colors.append('#00b09b')
+                elif 'negative' in sents:
                     sentiment_scores.append(-1)
+                    text_labels.append("Negative")
+                    colors.append('#eb3349')
                 else:
-                    sentiment_scores.append(0)
+                    sentiment_scores.append(0.1) # so it shows up in radar slightly
+                    text_labels.append("Neutral")
+                    colors.append('#95a5a6')
 
             fig = go.Figure()
             fig.add_trace(go.Scatterpolar(
-                r=[abs(s) if s != 0 else 0.1 for s in sentiment_scores],
+                r=[abs(s) for s in sentiment_scores],
                 theta=[ASPECT_DESCRIPTIONS[a] for a in ASPECT_COLUMNS],
                 fill='toself',
                 fillcolor='rgba(102, 126, 234, 0.2)',
                 line=dict(color='#667eea', width=2),
                 marker=dict(
-                    color=['#00b09b' if s > 0 else '#eb3349' if s < 0 else '#95a5a6' for s in sentiment_scores],
+                    color=colors,
                     size=10,
                 ),
-                text=[predictions[a].capitalize() for a in ASPECT_COLUMNS],
+                text=text_labels,
                 hovertemplate='%{theta}<br>Sentimen: %{text}<extra></extra>',
             ))
 
