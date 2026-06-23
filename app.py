@@ -1159,7 +1159,6 @@ elif page == "📛 Named Entity Recognition":
             st.stop()
 
         with st.spinner("Menganalisis entitas dalam seluruh dataset..."):
-        with st.spinner("Menganalisis entitas dalam seluruh dataset..."):
             from collections import Counter
             brand_counter = Counter()
             product_counter = Counter()
