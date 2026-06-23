@@ -266,6 +266,114 @@ ASPECT_COLORS = {
     'PROMOTION': '#fa709a'
 }
 
+# ─────────────────── NER Logic ───────────────────
+import re
+
+BRAND_ENTITIES = {
+    'zano', 'hos of shopaholic', 'hos', 'shopaholic', 'uniqlo', 'zara',
+    'h&m', 'matahari', 'ramayana', 'borma', 'erigo', '3second', 'greenlight',
+    'levis', 'adidas', 'nike', 'puma', 'champion'
+}
+
+PRODUCT_ENTITIES = {
+    'baju', 'kaos', 'kemeja', 'celana', 'rok', 'jaket', 'sweater', 'hoodie',
+    'dress', 'gamis', 'tunik', 'blouse', 'jas', 'pakaian', 'outfit', 'jeans',
+    'chino', 'kulot', 'legging', 'kain', 'bahan'
+}
+
+LOCATION_ENTITIES = {
+    'jakarta', 'bandung', 'surabaya', 'bali', 'jogja', 'yogyakarta',
+    'semarang', 'medan', 'makassar', 'palembang', 'malang', 'solo',
+    'denpasar', 'tasikmalaya', 'mall', 'plaza', 'toko', 'butik',
+    'outlet', 'store', 'cabang'
+}
+
+ASPECT_TERM_ENTITIES = {
+    'harga', 'murah', 'mahal', 'diskon', 'promo', 'promosi', 'sale',
+    'kualitas', 'bagus', 'jelek', 'awet', 'luntur', 'sobek', 'jahitan',
+    'pelayanan', 'ramah', 'kasir', 'pramuniaga', 'mbak', 'mas', 'layan',
+    'tempat', 'bersih', 'kotor', 'luas', 'sempit', 'nyaman', 'parkir',
+    'fitting room', 'kamar ganti', 'koleksi', 'lengkap', 'ukuran', 'size'
+}
+
+def extract_entities(text):
+    text_lower = text.lower()
+    entities = []
+    
+    # Helper for adding entities
+    def add_entity(entity_type, word):
+        # Find all occurrences of the word
+        for match in re.finditer(rf'\b{re.escape(word)}\b', text_lower):
+            start = match.start()
+            end = match.end()
+            # Avoid overlaps
+            overlap = any(start < e['end'] and end > e['start'] for e in entities)
+            if not overlap:
+                entities.append({
+                    'start': start,
+                    'end': end,
+                    'label': entity_type,
+                    'text': text[start:end]
+                })
+
+    # Sort entities by length descending to match longest phrases first
+    for word in sorted(BRAND_ENTITIES, key=len, reverse=True): add_entity('BRAND', word)
+    for word in sorted(PRODUCT_ENTITIES, key=len, reverse=True): add_entity('PRODUCT', word)
+    for word in sorted(LOCATION_ENTITIES, key=len, reverse=True): add_entity('LOCATION', word)
+    for word in sorted(ASPECT_TERM_ENTITIES, key=len, reverse=True): add_entity('ASPECT', word)
+    
+    return sorted(entities, key=lambda x: x['start'])
+
+def render_ner_html(text, entities):
+    if not entities:
+        return f'<p style="font-size:1rem; line-height:2.2;">{text}</p>'
+        
+    html_parts = []
+    last_end = 0
+    
+    for ent in entities:
+        if ent['label'] == 'BRAND':
+            bg_color = '#dbeafe'
+            border_color = '#93c5fd'
+            text_color = '#1e40af'
+        elif ent['label'] == 'PRODUCT':
+            bg_color = '#dcfce7'
+            border_color = '#86efac'
+            text_color = '#166534'
+        elif ent['label'] == 'LOCATION':
+            bg_color = '#fef3c7'
+            border_color = '#fcd34d'
+            text_color = '#92400e'
+        elif ent['label'] == 'ASPECT':
+            bg_color = '#f3e8ff'
+            border_color = '#c084fc'
+            text_color = '#6b21a8'
+        else:
+            bg_color = '#f3f4f6'
+            border_color = '#e5e7eb'
+            text_color = '#374151'
+            
+        # Add text before entity
+        if ent['start'] > last_end:
+            html_parts.append(text[last_end:ent['start']])
+            
+        # Add highlighted entity
+        html_parts.append(
+            f'<span style="background:{bg_color}; color:{text_color}; '
+            f'border:1px solid {border_color}; padding:2px 6px; '
+            f'border-radius:4px; font-weight:600; margin:0 1px;">'
+            f'{text[ent["start"]:ent["end"]]}'
+            f'<sup style="font-size:0.6rem; margin-left:2px; opacity:0.8;">{ent["label"]}</sup>'
+            f'</span>'
+        )
+        last_end = ent['end']
+        
+    # Add remaining text
+    if last_end < len(text):
+        html_parts.append(text[last_end:])
+        
+    return f'<p style="font-size:1rem; line-height:2.2;">{"".join(html_parts)}</p>'
+
 
 # ─────────────────── Sidebar ───────────────────
 with st.sidebar:
