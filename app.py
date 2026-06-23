@@ -1297,11 +1297,12 @@ elif page == "🚀 Demo Prediksi":
         "Pelayanan di toko Zano jelek banget, kasirnya judes dan antrian panjang",
         "Koleksi dress nya lengkap dengan harga terjangkau, tapi fitting room nya kotor"
     ]
+    def set_demo_input(text):
+        st.session_state['demo_input'] = text
+
     for col, example in zip(example_cols, examples):
         with col:
-            if st.button(f"📝 {example[:40]}...", key=f"ex_{example[:10]}"):
-                st.session_state['demo_input'] = example
-                st.rerun()
+            st.button(f"📝 {example[:40]}...", key=f"ex_{example[:10]}", on_click=set_demo_input, args=(example,))
 
     if demo_input or st.session_state.get('demo_input'):
         text_to_analyze = demo_input or st.session_state.get('demo_input', '')
