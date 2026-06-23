@@ -1,0 +1,8 @@
+model,split,micro_f1,macro_f1,weighted_f1,hamming_loss,subset_accuracy,representation,problem_transformation,algorithm,tuned_param
+BOW_1-2gram_ClassifierChain_LogReg_C0.5,validation,0.801762114537445,0.37370723070955236,0.810584443764155,0.04539722572509458,0.6524590163934426,Bag of Words unigram-bigram,Classifier Chain,Logistic Regression,C=0.5
+TFIDF_1-2gram_OVR_LinearSVC_C0.5,validation,0.8,0.3888909135239467,0.8051330106072818,0.04665825977301387,0.6163934426229508,TF-IDF word unigram-bigram,Binary Relevance / OneVsRest,Linear SVM,C=0.5
+TFIDF_1-2gram_OVR_LogReg_C1.0,validation,0.7991543340380549,0.43751339748657664,0.8137143603007768,0.04791929382093316,0.580327868852459,TF-IDF word unigram-bigram,Binary Relevance / OneVsRest,Logistic Regression,C=1.0
+TFIDF_1-2gram_OVR_LogReg_C2.0,validation,0.7987220447284346,0.433946127174453,0.8129452550348749,0.04766708701134931,0.6032786885245902,TF-IDF word unigram-bigram,Binary Relevance / OneVsRest,Logistic Regression,C=2.0
+TFIDF_1-2gram_OVR_LinearSVC_C1.0,validation,0.7973856209150327,0.3545340454106108,0.801359119405631,0.04691046658259773,0.6262295081967213,TF-IDF word unigram-bigram,Binary Relevance / OneVsRest,Linear SVM,C=1.0
+BOW_1-2gram_ClassifierChain_LogReg_C1.0,validation,0.7969264544456641,0.3584879681502571,0.8038116752263093,0.04665825977301387,0.6360655737704918,Bag of Words unigram-bigram,Classifier Chain,Logistic Regression,C=1.0
+TFIDF_1-2gram_OVR_LogReg_C0.5,validation,0.791974656810982,0.4487381546819745,0.8100213861244341,0.04968474148802018,0.5606557377049181,TF-IDF word unigram-bigram,Binary Relevance / OneVsRest,Logistic Regression,C=0.5

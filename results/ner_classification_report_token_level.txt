@@ -1,0 +1,33 @@
+                      precision    recall  f1-score   support
+
+                   O       0.85      0.02      0.05      1197
+      B-OUT_OF_TOPIC       0.00      0.00      0.00        13
+    B-PLACE_NEGATIVE       0.00      0.00      0.00        11
+     B-PLACE_NEUTRAL       0.00      0.00      0.00         0
+    B-PLACE_POSITIVE       0.56      0.43      0.49       152
+    B-PRICE_NEGATIVE       0.00      0.00      0.00         0
+     B-PRICE_NEUTRAL       0.00      0.00      0.00         2
+    B-PRICE_POSITIVE       0.65      0.68      0.67        53
+  B-PRODUCT_NEGATIVE       0.00      0.00      0.00        30
+   B-PRODUCT_NEUTRAL       0.00      0.00      0.00         7
+  B-PRODUCT_POSITIVE       0.49      0.50      0.50       351
+B-PROMOTION_NEGATIVE       0.00      0.00      0.00         0
+ B-PROMOTION_NEUTRAL       1.00      0.50      0.67         2
+B-PROMOTION_POSITIVE       0.00      0.00      0.00         4
+      I-OUT_OF_TOPIC       0.43      0.06      0.10        51
+    I-PLACE_NEGATIVE       0.50      0.07      0.12        74
+     I-PLACE_NEUTRAL       0.00      0.00      0.00         0
+    I-PLACE_POSITIVE       0.26      0.51      0.35       349
+    I-PRICE_NEGATIVE       0.00      0.00      0.00         0
+     I-PRICE_NEUTRAL       0.00      0.00      0.00         4
+    I-PRICE_POSITIVE       0.36      0.60      0.45        73
+  I-PRODUCT_NEGATIVE       0.56      0.06      0.11        81
+   I-PRODUCT_NEUTRAL       0.00      0.00      0.00        15
+  I-PRODUCT_POSITIVE       0.32      0.81      0.46       733
+I-PROMOTION_NEGATIVE       0.00      0.00      0.00         0
+ I-PROMOTION_NEUTRAL       0.00      0.00      0.00        13
+I-PROMOTION_POSITIVE       0.00      0.00      0.00        11
+
+            accuracy                           0.35      3226
+           macro avg       0.22      0.16      0.15      3226
+        weighted avg       0.55      0.35      0.26      3226

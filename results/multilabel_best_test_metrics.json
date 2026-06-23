@@ -1,0 +1,9 @@
+{
+  "model": "BOW_1-2gram_ClassifierChain_LogReg_C0.5",
+  "split": "test",
+  "micro_f1": 0.7937915742793792,
+  "macro_f1": 0.5093580854408165,
+  "weighted_f1": 0.812243494936954,
+  "hamming_loss": 0.04691046658259773,
+  "subset_accuracy": 0.6327868852459017
+}

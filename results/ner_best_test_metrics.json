@@ -1,0 +1,9 @@
+{
+  "loss": 2.072966694831848,
+  "micro_precision_non_o": 0.36690186016677356,
+  "micro_recall_non_o": 0.5638245441103992,
+  "micro_f1_non_o": 0.444530794637653,
+  "macro_precision_non_o": 0.13026219782049583,
+  "macro_recall_non_o": 0.1832089097495311,
+  "macro_f1_non_o": 0.1465976450022794
+}

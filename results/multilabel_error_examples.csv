@@ -1,0 +1,113 @@
+index,text,true_labels,pred_labels,missing_labels_FN,extra_labels_FP
+0,bahannya bagus jaitannya juga tapi jaitan kancingnya sepertinya kurang kuat saya cuci 1x langsung copot,PRODUCT_POSITIVE|PRODUCT_NEGATIVE,PRODUCT_NEGATIVE,PRODUCT_POSITIVE,
+2,kualitas produk bagusss bgt pesen kemarin hri ini uda dtg sukaa,PRODUCT_POSITIVE|PLACE_POSITIVE,PRODUCT_POSITIVE,PLACE_POSITIVE,
+5,suka belanja disini bagus bagus pelayanan ramah baik,PLACE_POSITIVE,PRODUCT_POSITIVE|PLACE_POSITIVE,,PRODUCT_POSITIVE
+6,ukurannya pas bahan lumayan sesuai harga,OUT_OF_TOPIC,PRODUCT_POSITIVE|PRICE_NEUTRAL,OUT_OF_TOPIC,PRICE_NEUTRAL|PRODUCT_POSITIVE
+7,bahan tipis kaya harga 70 80 rbu,PRODUCT_NEGATIVE,PRODUCT_NEGATIVE|PRICE_POSITIVE,,PRICE_POSITIVE
+11,barang ya bagus sekali bahan nya tebal cuma kendala di pengiriman aja agak lambat,PRODUCT_POSITIVE|PLACE_NEGATIVE,PRODUCT_POSITIVE|PRODUCT_NEGATIVE|PLACE_NEGATIVE,,PRODUCT_NEGATIVE
+12,pengalaman buruk kasir tidak ramah dan pelayanan kurang baik,PLACE_NEGATIVE,PLACE_POSITIVE|PLACE_NEGATIVE,,PLACE_POSITIVE
+13,cocok fit nya di bb88180 next bakal beli artikel lain,PRODUCT_POSITIVE|PLACE_POSITIVE,PLACE_POSITIVE,PRODUCT_POSITIVE,
+16,oke sih tapi dengan size 34 tb 173 bb 75 masih kedodoran njirr,PRODUCT_NEUTRAL,PRODUCT_NEGATIVE|PRODUCT_NEUTRAL,,PRODUCT_NEGATIVE
+20,bahan bagus tebel adem tb 170 bb 63 ukuran m pas,PRODUCT_POSITIVE,PRODUCT_POSITIVE|OUT_OF_TOPIC,,OUT_OF_TOPIC
+25,good lainnya juga adem,PRODUCT_POSITIVE,OUT_OF_TOPIC,PRODUCT_POSITIVE,OUT_OF_TOPIC
+26,lucu,OUT_OF_TOPIC,PRODUCT_POSITIVE,OUT_OF_TOPIC,PRODUCT_POSITIVE
+27,keren bb 70 tb 172 pake m,PRODUCT_POSITIVE|OUT_OF_TOPIC,PRODUCT_POSITIVE,OUT_OF_TOPIC,
+29,lengkap ada aksesoris tas sepatu dll ada juga baju untuk pria dan wanita parkir luas lokasi strategis dan mudah dijangkau pelayanan ramah ada tiga lantai lantai pertama untuk aksesoris tas sepatu dll lantai dua digunakan untuk baju wanita dan lantai ketiga untuk baju pria akses untuk ke masingmasing lantai hanya menggunakan tangga tidak ada lift maupun eskalator,PRODUCT_POSITIVE|PLACE_POSITIVE,PLACE_POSITIVE|PLACE_NEGATIVE|PLACE_NEUTRAL,PRODUCT_POSITIVE,PLACE_NEGATIVE|PLACE_NEUTRAL
+30,minta warna hitam yang datang abuabu,PLACE_NEGATIVE,PRODUCT_NEGATIVE|PLACE_NEGATIVE,,PRODUCT_NEGATIVE
+31,bajunyaa bagus bgttt temanku sukaa sekali sama kualitasnyaa tapi di badannya masih terlalu besar padahal yg diambil ujuran s looo tapi gpp katanyaa,PRODUCT_POSITIVE|PRODUCT_NEGATIVE,PRODUCT_POSITIVE,PRODUCT_NEGATIVE,
+36,another favorite local brand in jogja,PRODUCT_POSITIVE,OUT_OF_TOPIC,PRODUCT_POSITIVE,OUT_OF_TOPIC
+37,tempat shopping yang lumayan murah untuk harganya ada beberapa merk branded tapi kurang tau asli atau kw untuk baju tanpa merk harganya murah2 ada pakaian wanita dan laki2 ada aksesories juga sepatu sandal tas handuk selimut juga ada parkir motor dan mobil juga luas pegawainya ramah2 tempat tidak terlalu ramai,PRICE_POSITIVE|PLACE_POSITIVE,PRICE_POSITIVE|PLACE_POSITIVE|PLACE_NEUTRAL,,PLACE_NEUTRAL
+39,kualitas produk bahan halus tebel ga kecewa beli di sini tb 163 bb 50 ukuran s pas ga kebesaran dan ga kekecilan,PRODUCT_POSITIVE|PLACE_POSITIVE,PRODUCT_POSITIVE,PLACE_POSITIVE,
+40,sy tdk ngecek pas mau di strika baru kliatan padahl cucinya tdk di campur hnya baju putih itu sndri mungkin next sblm kirim bisa di cek lg,PRODUCT_NEGATIVE,PRODUCT_NEGATIVE|PLACE_NEGATIVE,,PLACE_NEGATIVE
+47,berada di jakal tempatnya gede bangeeeet lumayan hits karna harga nya murah2 kaos cuman 30rban murah kan hahahaha tp ya kualitas barang2 disini standar aja sih sukses selalu fashion icon,PRODUCT_POSITIVE|PRICE_POSITIVE|PLACE_POSITIVE,PRODUCT_NEUTRAL|PRICE_POSITIVE|PLACE_POSITIVE,PRODUCT_POSITIVE,PRODUCT_NEUTRAL
+48,nyaman serta pelayanan ramah,PRODUCT_POSITIVE|PRICE_POSITIVE,PLACE_POSITIVE,PRICE_POSITIVE|PRODUCT_POSITIVE,PLACE_POSITIVE
+54,another favorite local brand in jogja,PRODUCT_POSITIVE,OUT_OF_TOPIC,PRODUCT_POSITIVE,OUT_OF_TOPIC
+59,bahan bagus enak dan adem,PRODUCT_POSITIVE,OUT_OF_TOPIC,PRODUCT_POSITIVE,OUT_OF_TOPIC
+62,kasih dong program diskon juga buat off line nya,PROMOTION_NEUTRAL,PROMOTION_POSITIVE|PROMOTION_NEUTRAL,,PROMOTION_POSITIVE
+65,belanja di sini best deal banget kalo pinter milih dpt barang branded kerenkeren pokoknya best deal bbanget,PLACE_POSITIVE,OUT_OF_TOPIC,PLACE_POSITIVE,OUT_OF_TOPIC
+66,gg kualitas produk gg,PRODUCT_POSITIVE,PRODUCT_NEGATIVE,PRODUCT_POSITIVE,PRODUCT_NEGATIVE
+70,nyaman keren dan pas saat dipakai,PRODUCT_POSITIVE,OUT_OF_TOPIC,PRODUCT_POSITIVE,OUT_OF_TOPIC
+71,store berada di dalam vrtx bisa belanja sekaligus jajan,PLACE_POSITIVE,OUT_OF_TOPIC,PLACE_POSITIVE,OUT_OF_TOPIC
+73,bahan bagus tebel adem tb 170 bb 63 ukuran m pas,PRODUCT_POSITIVE,PRODUCT_POSITIVE|OUT_OF_TOPIC,,OUT_OF_TOPIC
+77,bahannya bagusss fittingnya agak aneh di saya bb 115 tb 168 ya lumayan lah,PRODUCT_POSITIVE,PRODUCT_POSITIVE|PRODUCT_NEGATIVE|PRODUCT_NEUTRAL,,PRODUCT_NEGATIVE|PRODUCT_NEUTRAL
+78,bahan bagus pengiriman sangat cepat cuman barangnya sedikit kelipet2 tapi gpp,OUT_OF_TOPIC,PRODUCT_POSITIVE|PRODUCT_NEGATIVE,OUT_OF_TOPIC,PRODUCT_NEGATIVE|PRODUCT_POSITIVE
+79,store berada di dalam vrtx bisa belanja sekaligus jajan,PLACE_POSITIVE,OUT_OF_TOPIC,PLACE_POSITIVE,OUT_OF_TOPIC
+81,good sesuai pesanan tjakeppp trima kasihhh,PLACE_POSITIVE,PRODUCT_POSITIVE,PLACE_POSITIVE,PRODUCT_POSITIVE
+89,proses pengiriman cepat dan barang sesuai dengan deskripsi mantap tenue,OUT_OF_TOPIC,PRODUCT_POSITIVE|PLACE_POSITIVE,OUT_OF_TOPIC,PLACE_POSITIVE|PRODUCT_POSITIVE
+91,produk sesuai deskripsi ukuran sesuai dengan guidelines bahan nyaman dikulit seller responsif proses cepat,OUT_OF_TOPIC,PRODUCT_POSITIVE|PLACE_POSITIVE,OUT_OF_TOPIC,PLACE_POSITIVE|PRODUCT_POSITIVE
+93,aku sangat menunggu store ini dibuka akhirnya deket tempat tinggalku,PLACE_POSITIVE,OUT_OF_TOPIC,PLACE_POSITIVE,OUT_OF_TOPIC
+96,worth it to buy,PRICE_POSITIVE,OUT_OF_TOPIC,PRICE_POSITIVE,OUT_OF_TOPIC
+100,bagus dan murah banyak diskonnya dari jilbab yang harganya 35an jadi 15 ribuan aja yuk kesini,PRICE_POSITIVE|PROMOTION_POSITIVE,PRODUCT_POSITIVE|PRICE_POSITIVE|PROMOTION_POSITIVE,,PRODUCT_POSITIVE
+101,gak suka ama kurir pengirimanya aja kemejanya mah bagus,PRODUCT_POSITIVE|PRODUCT_NEGATIVE,PRODUCT_POSITIVE|PLACE_NEGATIVE,PRODUCT_NEGATIVE,PLACE_NEGATIVE
+103,kualitas produk bagusss semoga pas dicowo aku,PRODUCT_POSITIVE,PRODUCT_POSITIVE|PRODUCT_NEUTRAL,,PRODUCT_NEUTRAL
+108,bahannya nyaman dipake dan adem buat sy mau cek dulu klo dicuci gmn ketahanannya klo ok repeat order,PRODUCT_POSITIVE,OUT_OF_TOPIC,PRODUCT_POSITIVE,OUT_OF_TOPIC
+109,bajunya bagus dapat free hijab,PRODUCT_POSITIVE,PRODUCT_POSITIVE|PROMOTION_POSITIVE,,PROMOTION_POSITIVE
+113,beneran muat dong size 30makasih buat host nya udh ngerekomendasikan,PRODUCT_POSITIVE,PRODUCT_POSITIVE|PLACE_POSITIVE,,PLACE_POSITIVE
+114,bahannya bagus datangnya juga cepat dan kualitasnya sangat bagus ukuran yang dikirim sesuai dengan deskripsi yang diberikan,PRODUCT_POSITIVE,PRODUCT_POSITIVE|PLACE_POSITIVE,,PLACE_POSITIVE
+116,dekat lengkap murah ramah dan up to datesetiap ke jogjakarta pasti mampirhy toilet jauh dan kurang mumpuniterima kasih ya mba2 nya gesit informatif dan ramahsuwun,PRODUCT_POSITIVE|PRICE_POSITIVE|PLACE_POSITIVE,PRICE_POSITIVE|PLACE_POSITIVE|PLACE_NEGATIVE,PRODUCT_POSITIVE,PLACE_NEGATIVE
+118,ademm bagusss tapi gadikasihh stikerrrrr kecewaaa beraat,PRODUCT_POSITIVE|PRODUCT_NEGATIVE,PRODUCT_POSITIVE|PLACE_NEGATIVE,PRODUCT_NEGATIVE,PLACE_NEGATIVE
+119,jahitan kurang rapih masih banyak sisa2 benang belum diberesin kain sih adem enak tidak terlalu tipis hanya kualitas jahitannya saja mungkin perlu di cek kembali,PRODUCT_POSITIVE|PRODUCT_NEGATIVE,PRODUCT_NEUTRAL|OUT_OF_TOPIC,PRODUCT_NEGATIVE|PRODUCT_POSITIVE,OUT_OF_TOPIC|PRODUCT_NEUTRAL
+120,rekomendasi sih buat baju baju yang luculucu dan buat baju main,PRODUCT_POSITIVE,PRODUCT_POSITIVE|PROMOTION_POSITIVE,,PROMOTION_POSITIVE
+122,semua dari kalangan bisa sih cari outfit ke sinii kataku sih rekomen banget,PLACE_POSITIVE,OUT_OF_TOPIC,PLACE_POSITIVE,OUT_OF_TOPIC
+123,selalu memuaskan belanja di sini,PLACE_POSITIVE,OUT_OF_TOPIC,PLACE_POSITIVE,OUT_OF_TOPIC
+124,foto produk bonus sama bella bonita juga bang,PRODUCT_NEUTRAL|PROMOTION_NEUTRAL,OUT_OF_TOPIC,PRODUCT_NEUTRAL|PROMOTION_NEUTRAL,OUT_OF_TOPIC
+126,bahan bagus enak dan adem,PRODUCT_POSITIVE,OUT_OF_TOPIC,PRODUCT_POSITIVE,OUT_OF_TOPIC
+128,tempatnya aestetic sekali lebih dekat dari rumah dan menyediakan berbagai pakaian,PRODUCT_POSITIVE|PLACE_POSITIVE,PLACE_POSITIVE,PRODUCT_POSITIVE,
+130,bnr bagus poll apalagi pelayananya sangat sangat memuaskan smpe nga bisa moveon sma mb nya harga murah pelayanan oke kurang apalagi coba rugi sii klo nga mampir pokoknya rekomended bngtt,PRODUCT_POSITIVE|PRICE_POSITIVE|PLACE_POSITIVE,PRICE_POSITIVE|PLACE_POSITIVE,PRODUCT_POSITIVE,
+136,bahan bagus hanya untuk orang yg oversize ukurannya agak kecil,PRODUCT_POSITIVE|PRODUCT_NEGATIVE,PRODUCT_POSITIVE|PRODUCT_NEUTRAL,PRODUCT_NEGATIVE,PRODUCT_NEUTRAL
+141,utk celana seharga 145 rb an kualitas nya bagus,PRODUCT_POSITIVE|PRICE_POSITIVE,PRODUCT_POSITIVE,PRICE_POSITIVE,
+145,bajunya bagus harga terjangkau ruangannya bersih kakaknya ramah,PRODUCT_POSITIVE|PLACE_POSITIVE,PRODUCT_POSITIVE|PRICE_POSITIVE|PLACE_POSITIVE,,PRICE_POSITIVE
+149,barangnya kekinian pelayanan oke sangat recommended,PRODUCT_POSITIVE|PLACE_POSITIVE,PLACE_POSITIVE,PRODUCT_POSITIVE,
+152,kalau ini pembelian ke 2 nyesek bgt waktu itu cuma co yang warna hitam tau bagus gini langsung co 2 2 nya biar ga nunggu lama,PRODUCT_POSITIVE,PRODUCT_NEGATIVE|PLACE_NEGATIVE,PRODUCT_POSITIVE,PLACE_NEGATIVE|PRODUCT_NEGATIVE
+154,ukuran agak terlalu besar bisa dipertimbangkan kembali untuk downsize,PRODUCT_NEGATIVE,OUT_OF_TOPIC,PRODUCT_NEGATIVE,OUT_OF_TOPIC
+155,udah beberapa kali beli gak pernah kecewa bahannya adem,PRODUCT_POSITIVE|PLACE_POSITIVE,PRODUCT_POSITIVE,PLACE_POSITIVE,
+156,size 34 di saya bb 95 masih longgar best lahh,PRODUCT_POSITIVE|PRODUCT_NEUTRAL,PRODUCT_NEUTRAL,PRODUCT_POSITIVE,
+161,senang beli baju disini dapat rok dan knit lucu,PRODUCT_POSITIVE|PLACE_POSITIVE,PLACE_POSITIVE,PRODUCT_POSITIVE,
+162,gesit banget admin fast respon gak kek toko sebelah,OUT_OF_TOPIC,PLACE_POSITIVE,OUT_OF_TOPIC,PLACE_POSITIVE
+163,blanja nyaman lumayan lengkap,PLACE_POSITIVE,PRODUCT_NEUTRAL|PLACE_POSITIVE,,PRODUCT_NEUTRAL
+169,pelayananya sangat memuaskann bgtt mb2 nya ruamahhh polll,PLACE_POSITIVE,OUT_OF_TOPIC,PLACE_POSITIVE,OUT_OF_TOPIC
+170,saya pesen ukuran m ko besar kak tpi bahan bagus cuma kebesaran aja baju nya kaya ukuran xl,PRODUCT_POSITIVE|OUT_OF_TOPIC,PRODUCT_NEGATIVE|OUT_OF_TOPIC,PRODUCT_POSITIVE,PRODUCT_NEGATIVE
+171,bahannya tergolong tipis tapi adem dan halus kalo untuk baju hitam dan warna lain mungkin oke aja yaa tapi kalo untuk baju putih seharusnya akan nerawang,OUT_OF_TOPIC,PRODUCT_POSITIVE|PRODUCT_NEGATIVE,OUT_OF_TOPIC,PRODUCT_NEGATIVE|PRODUCT_POSITIVE
+177,pelayanan bagus dan barang barangnya juga lumayan lengkap puas belanja disini,PRODUCT_POSITIVE|PRODUCT_NEUTRAL|PLACE_POSITIVE,PRODUCT_POSITIVE|PLACE_POSITIVE,PRODUCT_NEUTRAL,
+178,good quality service nya bagus,PLACE_POSITIVE,PRODUCT_POSITIVE|PLACE_POSITIVE,,PRODUCT_POSITIVE
+181,bajunya fashionable tempat nyaman,PRODUCT_POSITIVE|PLACE_POSITIVE,PLACE_POSITIVE,PRODUCT_POSITIVE,
+182,bahan ga tipis ga tebal lumayan lahhalus jahitan dan cuttingannya rapih worthit,PRODUCT_POSITIVE|PRODUCT_NEUTRAL|PRICE_POSITIVE,PRODUCT_POSITIVE|PRODUCT_NEUTRAL,PRICE_POSITIVE,
+185,kualitas produk bagus banget next order lagi,PRODUCT_POSITIVE|PLACE_POSITIVE,PRODUCT_POSITIVE,PLACE_POSITIVE,
+186,bahan adem dan elegant,OUT_OF_TOPIC,PRODUCT_POSITIVE,OUT_OF_TOPIC,PRODUCT_POSITIVE
+187,buat kalian yang lagi cari toko baju di jogja disini rekomendasi banget harganya murahmurah bahkan sering ada promo menarik pelayanannya ramah dan model bajunya trendy selain baju ada juga celana jilbab dan dress pokoknya lengkap banget dah,PRODUCT_POSITIVE|PRICE_POSITIVE|PLACE_POSITIVE|PROMOTION_POSITIVE,PRODUCT_POSITIVE|PLACE_POSITIVE|PROMOTION_POSITIVE,PRICE_POSITIVE,
+191,bagus bgt belanja di screamous tak pernah kecewa,PRODUCT_POSITIVE|PLACE_POSITIVE,PLACE_POSITIVE,PRODUCT_POSITIVE,
+192,bb 70 tb 170 pake size m pas banget barang sampai dengan aman proses pengiriman cepat respon seller ramah dan cepat packing rapi barang sesuai dengan foto kuali,PRODUCT_POSITIVE|PLACE_POSITIVE|OUT_OF_TOPIC,PRODUCT_POSITIVE|PLACE_POSITIVE,OUT_OF_TOPIC,
+196,uk pass bahan tebel bagussssssssss,PRODUCT_POSITIVE,PRODUCT_POSITIVE|OUT_OF_TOPIC,,OUT_OF_TOPIC
+198,had a nice experience shopping here,PLACE_POSITIVE,OUT_OF_TOPIC,PLACE_POSITIVE,OUT_OF_TOPIC
+201,product quality sesuai ekspektasi,PRODUCT_POSITIVE,OUT_OF_TOPIC,PRODUCT_POSITIVE,OUT_OF_TOPIC
+202,bagus banget bajunya harganya juga harga pelajar tapi kualitasnya oke banget worth to buy,PRODUCT_POSITIVE|PRICE_POSITIVE,PRODUCT_POSITIVE|PRICE_POSITIVE|PROMOTION_POSITIVE,,PROMOTION_POSITIVE
+203,produk sesuai deskripsi potongan sesuai jahitan ok kain agak menerawang terimakasih,OUT_OF_TOPIC,PRODUCT_POSITIVE|PRODUCT_NEGATIVE,OUT_OF_TOPIC,PRODUCT_NEGATIVE|PRODUCT_POSITIVE
+212,product quality as good as its described,OUT_OF_TOPIC,PRODUCT_POSITIVE,OUT_OF_TOPIC,PRODUCT_POSITIVE
+219,tempat hiiling ciwik2 kesini cuma mau nyari masker karena disini lumayan banyak item masker nya tempat adem pelayan ramah parkir murah motor 1k dan mobil 2k barang barang juga lengkap kok,PLACE_POSITIVE,PRODUCT_POSITIVE|PRICE_POSITIVE|PLACE_POSITIVE,,PRICE_POSITIVE|PRODUCT_POSITIVE
+220,selalu puassdh beli untuk yg ke sekian kalinya,PLACE_POSITIVE,OUT_OF_TOPIC,PLACE_POSITIVE,OUT_OF_TOPIC
+221,udah 2x pesen barang sesuaimantap gaa pernah mengecewakan,PLACE_POSITIVE,OUT_OF_TOPIC,PLACE_POSITIVE,OUT_OF_TOPIC
+223,bajunya bagus bagus pengiriman nya cepet,PRODUCT_POSITIVE,PRODUCT_POSITIVE|PLACE_POSITIVE,,PLACE_POSITIVE
+226,cuttingan dan materialnya sih top notch dengan harga 150an,PRODUCT_POSITIVE|PRICE_POSITIVE,PRICE_POSITIVE|OUT_OF_TOPIC,PRODUCT_POSITIVE,OUT_OF_TOPIC
+233,cozy place for shopping,PLACE_POSITIVE,OUT_OF_TOPIC,PLACE_POSITIVE,OUT_OF_TOPIC
+234,pmbelian yng kdua kali ny anakku suka,PLACE_POSITIVE,PRODUCT_POSITIVE,PLACE_POSITIVE,PRODUCT_POSITIVE
+236,bahan tebal gak gerah look enak di lihat gak kecewa si sama produk dari onoma udah nyoba beli 4x baju oversize dari brand lain yang paling nyaman dan good looking di ono,PRODUCT_POSITIVE|PLACE_POSITIVE,PRODUCT_POSITIVE,PLACE_POSITIVE,
+237,pengalaman buruk kasir tidak ramah dan pelayanan kurang baik,PLACE_NEGATIVE,PLACE_POSITIVE|PLACE_NEGATIVE,,PLACE_POSITIVE
+242,tinggi 170 bb 65 menurut pribadi pas gak terlalu gede,PRODUCT_POSITIVE,OUT_OF_TOPIC,PRODUCT_POSITIVE,OUT_OF_TOPIC
+248,keren banyak produk branded tapi harus milih yg oke per lantai ada macam2 produk lantai 1 aksesoris lantai 2 untuk perempuan lantai 3 untuk cowok dan anak,PRODUCT_POSITIVE|PLACE_POSITIVE,PRODUCT_POSITIVE|PRODUCT_NEUTRAL,PLACE_POSITIVE,PRODUCT_NEUTRAL
+252,toko fashion icon jakal menjual aksesorisbaju anakbaju wanita baju pria semua hampir ada dari yang branded smpai brand lokal juga ada pakaian nya bagus terkini sekali pokoknyaa langsung aja datang ke cabangoutlet fashion icon jogja toko nya ada 3 cabang lagi ada di daerah jakal godean dan seturan,PRODUCT_POSITIVE|PLACE_POSITIVE,PLACE_POSITIVE,PRODUCT_POSITIVE,
+254,bagus banget sudah dua kali beli disini,PRODUCT_POSITIVE,PRODUCT_POSITIVE|PLACE_POSITIVE,,PLACE_POSITIVE
+257,good place,PLACE_POSITIVE,OUT_OF_TOPIC,PLACE_POSITIVE,OUT_OF_TOPIC
+259,bahan bagus pengiriman super cepat ukuran pas warna sedikit lebih gelap dibandingkan gambar,PRODUCT_POSITIVE|PRODUCT_NEGATIVE|PLACE_POSITIVE,PRODUCT_POSITIVE|PRODUCT_NEGATIVE,PLACE_POSITIVE,
+264,store outfit basic rekomendasi di jogja dan brand lokal,PROMOTION_POSITIVE,PLACE_POSITIVE,PROMOTION_POSITIVE,PLACE_POSITIVE
+267,bahan adem gak bikin gerah nyaman buat dipakai,PRODUCT_POSITIVE,OUT_OF_TOPIC,PRODUCT_POSITIVE,OUT_OF_TOPIC
+268,udah beberapa kali beli gak pernah kecewa bahannya adem,OUT_OF_TOPIC,PRODUCT_POSITIVE,OUT_OF_TOPIC,PRODUCT_POSITIVE
+270,kualitas produk baik lembut bahan tebal mudah di pakai,PRODUCT_POSITIVE,PRODUCT_POSITIVE|OUT_OF_TOPIC,,OUT_OF_TOPIC
+272,aku sangat menunggu store ini dibuka akhirnya deket tempat tinggalku,PLACE_POSITIVE,OUT_OF_TOPIC,PLACE_POSITIVE,OUT_OF_TOPIC
+277,product quality bahan kain halus ukuran pilih xl pas di badan gak kegedean gak kekecilan jahitan rapi overall goods,PRODUCT_POSITIVE,OUT_OF_TOPIC,PRODUCT_POSITIVE,OUT_OF_TOPIC
+278,bajunya bagus bagus dan trendy bangettt,OUT_OF_TOPIC,PRODUCT_POSITIVE,OUT_OF_TOPIC,PRODUCT_POSITIVE
+280,bahannya adem warnanya juga realpict bagus banget,OUT_OF_TOPIC,PRODUCT_POSITIVE,OUT_OF_TOPIC,PRODUCT_POSITIVE
+283,selalu belanja di sini karna barang bagus kualitas ok,PRODUCT_POSITIVE,PRODUCT_POSITIVE|PLACE_POSITIVE,,PLACE_POSITIVE
+285,fashion icon jogja jakal sangat komplit pelayanan ramah toko bersih lengkap dan pelayanan bagus pokoknya bintang dehhh hehehe terimakasih,PRODUCT_POSITIVE|PLACE_POSITIVE,PLACE_POSITIVE,PRODUCT_POSITIVE,
+292,ukurannya pas bagus next order lagi mantap,PRODUCT_POSITIVE,PRODUCT_POSITIVE|PLACE_POSITIVE,,PLACE_POSITIVE
+295,wah gw suka nih bahannya jauh lebih adem dibanding woodcutter untuk fit 1112 tapi masih masuk di badan gw yang gempal ini,PRODUCT_POSITIVE,OUT_OF_TOPIC,PRODUCT_POSITIVE,OUT_OF_TOPIC
+304,kualitas produk bagus untuk harga sesuai sama kualitasnya bahan adem lumayan tebal dan agak berbuluterimakasih,PRODUCT_POSITIVE|PRODUCT_NEGATIVE|PRICE_POSITIVE,PRODUCT_POSITIVE|PRODUCT_NEUTRAL|PRICE_NEUTRAL,PRICE_POSITIVE|PRODUCT_NEGATIVE,PRICE_NEUTRAL|PRODUCT_NEUTRAL

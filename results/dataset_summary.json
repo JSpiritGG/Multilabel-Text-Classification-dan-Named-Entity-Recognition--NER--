@@ -1,0 +1,10 @@
+{
+  "raw_dataset_rows": 1491,
+  "clean_dataset_rows": 979,
+  "ner_train_rows": 2440,
+  "ner_val_rows": 305,
+  "ner_test_rows": 305,
+  "multilabel_train_rows": 2440,
+  "multilabel_val_rows": 305,
+  "multilabel_test_rows": 305
+}
