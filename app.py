@@ -393,9 +393,8 @@ with st.sidebar:
     st.markdown("---")
     st.markdown("""
     <div style='text-align: center; opacity: 0.7; font-size: 0.75rem;'>
-        <p>📚 Pemrosesan Bahasa Alami</p>
-        <p>Universitas Atma Jaya</p>
-        <p>Semester 6 • 2026</p>
+        <p>🔍 ABSA Dashboard</p>
+        <p>Multilabel Classification & NER</p>
     </div>
     """, unsafe_allow_html=True)
 
@@ -1050,141 +1049,7 @@ elif page == "📛 Named Entity Recognition":
     </div>
     """, unsafe_allow_html=True)
 
-    # ─── NER Engine ───
-    # Known entities database
-    BRAND_ENTITIES = {
-        'zano', 'hos of shopaholic', 'hos', 'shopaholic', 'uniqlo', 'zara',
-        'h&m', 'matahari', 'ramayana', 'borma', 'erigo', '3second', 'greenlight',
-        'levis', 'adidas', 'nike', 'puma', 'champion'
-    }
-
-    PRODUCT_ENTITIES = {
-        'baju', 'kaos', 'kemeja', 'celana', 'rok', 'jaket', 'sweater', 'hoodie',
-        'dress', 'gamis', 'tunik', 'blouse', 'jas', 'pakaian', 'outfit', 'jeans',
-        'chino', 'kulot', 'legging', 'kain', 'bahan'
-    }
-
-    LOCATION_ENTITIES = {
-        'jakarta', 'bandung', 'surabaya', 'bali', 'jogja', 'yogyakarta',
-        'semarang', 'medan', 'makassar', 'palembang', 'malang', 'solo',
-        'denpasar', 'tasikmalaya', 'mall', 'plaza', 'toko', 'butik',
-        'outlet', 'store', 'cabang'
-    }
-
-    ASPECT_TERM_ENTITIES = {
-        'harga', 'murah', 'mahal', 'diskon', 'promo', 'promosi', 'sale',
-        'kualitas', 'bagus', 'jelek', 'awet', 'luntur', 'sobek', 'jahitan',
-        'pelayanan', 'ramah', 'kasir', 'pramuniaga', 'mbak', 'mas', 'layan',
-        'tempat', 'bersih', 'kotor', 'luas', 'sempit', 'nyaman', 'parkir',
-        'fitting room', 'kamar ganti', 'koleksi', 'lengkap', 'ukuran', 'size'
-    }
-
-    def extract_entities(text):
-        """Extract named entities from text using rule-based approach."""
-        text_lower = text.lower()
-        words = text_lower.split()
-        entities = []
-
-        # Brand detection
-        for brand in BRAND_ENTITIES:
-            if brand in text_lower:
-                start = text_lower.find(brand)
-                original = text[start:start+len(brand)]
-                entities.append({
-                    'text': original,
-                    'label': 'BRAND',
-                    'start': start,
-                    'end': start + len(brand),
-                    'color': '#dbeafe',
-                    'text_color': '#1e40af',
-                    'border_color': '#93c5fd'
-                })
-
-        # Product detection
-        for product in PRODUCT_ENTITIES:
-            if product in text_lower:
-                start = text_lower.find(product)
-                original = text[start:start+len(product)]
-                entities.append({
-                    'text': original,
-                    'label': 'PRODUCT',
-                    'start': start,
-                    'end': start + len(product),
-                    'color': '#dcfce7',
-                    'text_color': '#166534',
-                    'border_color': '#86efac'
-                })
-
-        # Location detection
-        for location in LOCATION_ENTITIES:
-            if location in text_lower:
-                start = text_lower.find(location)
-                original = text[start:start+len(location)]
-                entities.append({
-                    'text': original,
-                    'label': 'LOCATION',
-                    'start': start,
-                    'end': start + len(location),
-                    'color': '#fef3c7',
-                    'text_color': '#92400e',
-                    'border_color': '#fcd34d'
-                })
-
-        # Aspect term detection
-        for term in ASPECT_TERM_ENTITIES:
-            if term in text_lower:
-                start = text_lower.find(term)
-                original = text[start:start+len(term)]
-                entities.append({
-                    'text': original,
-                    'label': 'ASPECT',
-                    'start': start,
-                    'end': start + len(term),
-                    'color': '#f3e8ff',
-                    'text_color': '#6b21a8',
-                    'border_color': '#c084fc'
-                })
-
-        # Sort by start position and remove overlaps
-        entities.sort(key=lambda x: x['start'])
-        filtered = []
-        last_end = -1
-        for ent in entities:
-            if ent['start'] >= last_end:
-                filtered.append(ent)
-                last_end = ent['end']
-
-        return filtered
-
-    def render_ner_html(text, entities):
-        """Render text with highlighted entities."""
-        if not entities:
-            return f'<p style="font-size:1rem; line-height:1.8;">{text}</p>'
-
-        html_parts = []
-        last_end = 0
-
-        for ent in entities:
-            # Add text before entity
-            if ent['start'] > last_end:
-                html_parts.append(text[last_end:ent['start']])
-
-            # Add highlighted entity
-            html_parts.append(
-                f'<span style="background:{ent["color"]}; color:{ent["text_color"]}; '
-                f'border:1px solid {ent["border_color"]}; padding:2px 6px; '
-                f'border-radius:4px; font-weight:600; margin:0 1px;">'
-                f'{text[ent["start"]:ent["end"]]}'
-                f'<sup style="font-size:0.6rem; margin-left:2px; opacity:0.8;">{ent["label"]}</sup>'
-                f'</span>'
-            )
-            last_end = ent['end']
-
-        # Add remaining text
-        if last_end < len(text):
-            html_parts.append(text[last_end:])
-
-        return f'<p style="font-size:1rem; line-height:2.2;">{"".join(html_parts)}</p>'
+    # NER uses global extract_entities() and render_ner_html() functions defined above
 
     # ─── NER Interface ───
     tab1, tab2 = st.tabs(["🔍 NER Interaktif", "📊 Statistik Entitas"])
@@ -1444,6 +1309,32 @@ elif page == "🚀 Demo Prediksi":
                 # NER
                 entities = extract_entities(text_to_analyze)
 
+            # ─── Map NER entities to aspects ───
+            ASPECT_ENTITY_MAP = {
+                'PRODUCT': {'PRODUCT', 'BRAND'},
+                'PRICE': set(),
+                'PLACE': {'LOCATION'},
+                'PROMOTION': set(),
+            }
+            ASPECT_KEYWORD_MAP = {
+                'PRODUCT': {'kualitas', 'bagus', 'jelek', 'awet', 'luntur', 'sobek', 'jahitan', 'koleksi', 'lengkap', 'ukuran', 'size', 'bahan', 'kain'},
+                'PRICE': {'harga', 'murah', 'mahal'},
+                'PLACE': {'tempat', 'bersih', 'kotor', 'luas', 'sempit', 'nyaman', 'parkir', 'fitting room', 'kamar ganti', 'toko', 'butik', 'outlet', 'store', 'cabang', 'mall', 'plaza'},
+                'PROMOTION': {'diskon', 'promo', 'promosi', 'sale'},
+            }
+
+            def get_entities_for_aspect(aspect, entities):
+                """Get NER entities relevant to a specific aspect."""
+                relevant = []
+                ner_labels = ASPECT_ENTITY_MAP.get(aspect, set())
+                keywords = ASPECT_KEYWORD_MAP.get(aspect, set())
+                for ent in entities:
+                    if ent['label'] in ner_labels:
+                        relevant.append(ent)
+                    elif ent['label'] == 'ASPECT' and ent['text'].lower() in keywords:
+                        relevant.append(ent)
+                return relevant
+
             # ─── Display Results ───
             col_left, col_right = st.columns([3, 2])
 
@@ -1453,21 +1344,49 @@ elif page == "🚀 Demo Prediksi":
                 for aspect in ASPECT_COLUMNS:
                     sentiments = predictions.get(aspect, [])
                     icon = ASPECT_DESCRIPTIONS[aspect]
+                    aspect_entities = get_entities_for_aspect(aspect, entities)
 
                     if len(sentiments) == 0:
-                        sent_badge = '<span class="sentiment-neutral" style="padding: 4px 8px; border-radius: 4px; background: #f3f4f6;">➖ Neutral/None</span>'
+                        sent_badge = '<span style="padding: 4px 10px; border-radius: 6px; background: #f3f4f6; color: #6b7280; font-size: 0.8rem; font-weight: 600;">➖ Neutral/None</span>'
                     else:
                         sent_badge = ""
                         for sent in sentiments:
                             if sent == 'positive':
-                                sent_badge += '<span class="sentiment-positive" style="margin-left: 4px; padding: 4px 8px; border-radius: 4px; background: #d1fae5; color: #065f46;">✅ Positive</span>'
+                                sent_badge += '<span style="margin-left: 4px; padding: 4px 10px; border-radius: 6px; background: #d1fae5; color: #065f46; font-size: 0.8rem; font-weight: 600;">✅ Positive</span>'
                             elif sent == 'negative':
-                                sent_badge += '<span class="sentiment-negative" style="margin-left: 4px; padding: 4px 8px; border-radius: 4px; background: #fee2e2; color: #991b1b;">❌ Negative</span>'
+                                sent_badge += '<span style="margin-left: 4px; padding: 4px 10px; border-radius: 6px; background: #fee2e2; color: #991b1b; font-size: 0.8rem; font-weight: 600;">❌ Negative</span>'
+
+                    # Build entity tags HTML
+                    entity_tags_html = ""
+                    if aspect_entities:
+                        label_colors = {
+                            'BRAND': ('#dbeafe', '#1e40af', '🏭'),
+                            'PRODUCT': ('#dcfce7', '#166534', '👕'),
+                            'LOCATION': ('#fef3c7', '#92400e', '📍'),
+                            'ASPECT': ('#f3e8ff', '#6b21a8', '🏷️'),
+                        }
+                        tags = []
+                        seen = set()
+                        for ent in aspect_entities:
+                            key = ent['text'].lower()
+                            if key not in seen:
+                                seen.add(key)
+                                bg, tc, emoji = label_colors.get(ent['label'], ('#f3f4f6', '#333', '📌'))
+                                tags.append(
+                                    f'<span style="display:inline-block; background:{bg}; color:{tc}; '
+                                    f'padding:2px 8px; border-radius:10px; font-size:0.72rem; font-weight:600; '
+                                    f'margin:2px 3px 0 0;">{emoji} {ent["text"]}'
+                                    f'<sup style="font-size:0.55rem; opacity:0.7; margin-left:2px;">{ent["label"]}</sup></span>'
+                                )
+                        entity_tags_html = f'<div style="margin-top:6px; display:flex; flex-wrap:wrap; gap:2px;">{" ".join(tags)}</div>'
 
                     st.markdown(f"""
-                    <div class="prediction-card" style="display:flex; justify-content:space-between; align-items:center; padding:0.8rem 1.2rem;">
-                        <span style="font-weight:600; font-size:0.95rem;">{icon}</span>
-                        <div>{sent_badge}</div>
+                    <div class="prediction-card" style="padding:0.8rem 1.2rem;">
+                        <div style="display:flex; justify-content:space-between; align-items:center;">
+                            <span style="font-weight:600; font-size:0.95rem;">{icon}</span>
+                            <div>{sent_badge}</div>
+                        </div>
+                        {entity_tags_html}
                     </div>
                     """, unsafe_allow_html=True)
 
@@ -1562,7 +1481,6 @@ elif page == "🚀 Demo Prediksi":
 # ─────────────────── Footer ───────────────────
 st.markdown("""
 <div class="footer">
-    <p>🔍 ABSA - Multilabel Classification & NER | Pemrosesan Bahasa Alami</p>
-    <p>Universitas Atma Jaya • Semester 6 • 2026</p>
+    <p>🔍 ABSA Dashboard — Multilabel Classification & Named Entity Recognition</p>
 </div>
 """, unsafe_allow_html=True)
