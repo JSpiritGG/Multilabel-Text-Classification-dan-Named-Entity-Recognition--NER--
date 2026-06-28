@@ -1477,7 +1477,10 @@ elif page == "🚀 Demo Prediksi":
                 predictions = {}
                 for idx, col in enumerate(target_cols):
                     if y_pred[idx] == 1:
-                        aspect, sentiment = col.split('_')
+                        parts = col.rsplit('_', 1)
+                        if len(parts) != 2:
+                            continue
+                        aspect, sentiment = parts
                         if aspect not in predictions:
                             predictions[aspect] = []
                         predictions[aspect].append(sentiment.lower())
