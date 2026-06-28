@@ -1396,16 +1396,12 @@ elif page == "🚀 Demo Prediksi":
             base_path = os.path.join(os.path.dirname(__file__), 'models')
             data = joblib.load(os.path.join(base_path, 'Kelp2_best_multilabel_model.joblib'))
             pipeline = data.get('pipeline') or data.get('model') or data
-            target_cols = data.get('target_cols') or data.get('labels') or []
+            # Prioritize 'labels' key — contains all 13 labels including OUT_OF_TOPIC
+            target_cols = data.get('labels') or data.get('target_cols') or []
+            # Model is ClassifierChain + LogReg → uses predict_proba
             score_type = data.get('score_type', 'predict_proba') if isinstance(data, dict) else 'predict_proba'
-            if not target_cols:
-                target_cols = []
-                for a in ASPECT_COLUMNS:
-                    for s in SENTIMENT_LABELS:
-                        col = f"{a}_{s}"
-                        target_cols.append(col)
-            raw_thresholds = data.get('thresholds', {})
-            # Normalize: if thresholds is a list, convert to dict using target_cols
+            raw_thresholds = data.get('thresholds', [])
+            # thresholds is a list aligned to labels order
             if isinstance(raw_thresholds, (list, np.ndarray)) and target_cols:
                 thresholds = {col: float(t) for col, t in zip(target_cols, raw_thresholds)}
             elif isinstance(raw_thresholds, dict):
@@ -1414,6 +1410,7 @@ elif page == "🚀 Demo Prediksi":
                 thresholds = {}
             return pipeline, thresholds, target_cols, score_type
         except Exception as e:
+            st.error(f"Gagal load model: {e}")
             return None, {}, [], 'predict_proba'
 
 
@@ -1458,26 +1455,30 @@ elif page == "🚀 Demo Prediksi":
                 # Predict using best pipeline
                 import numpy as np
                 try:
-                    # score_type already loaded from joblib via load_best_multilabel_model()
-                    # Use decision_function for LinearSVC-based models
                     use_decision = (score_type == 'decision_function') or (not hasattr(pipeline, 'predict_proba'))
                     if use_decision:
                         scores = pipeline.decision_function([text_to_analyze])
                         scores = np.array(scores)
                         if scores.ndim == 1:
                             scores = scores.reshape(1, -1)
+                        default_thresh = 0.0
                     else:
-                        scores = pipeline.predict_proba([text_to_analyze])
-                        if hasattr(scores, 'toarray'):
-                            scores = scores.toarray()
-                        scores = np.array(scores)
+                        raw_proba = pipeline.predict_proba([text_to_analyze])
+                        # ClassifierChain returns list of arrays (one per label)
+                        if isinstance(raw_proba, list):
+                            scores = np.array([[p[0][1] if p.shape[1] == 2 else p[0][0] for p in raw_proba]])
+                        else:
+                            if hasattr(raw_proba, 'toarray'):
+                                raw_proba = raw_proba.toarray()
+                            scores = np.array(raw_proba)
+                        default_thresh = 0.5
+
                     if thresholds and len(thresholds) == scores.shape[1]:
-                        thresh_arr = np.array([thresholds.get(col, 0.0 if use_decision else 0.5) for col in target_cols])
+                        thresh_arr = np.array([thresholds.get(col, default_thresh) for col in target_cols])
                         y_pred = (scores[0] >= thresh_arr).astype(int)
                     else:
-                        default_t = 0.0 if use_decision else 0.5
-                        y_pred = (scores[0] >= default_t).astype(int)
-                except Exception:
+                        y_pred = (scores[0] >= default_thresh).astype(int)
+                except Exception as ex:
                     raw = pipeline.predict([text_to_analyze])
                     if hasattr(raw, 'toarray'):
                         raw = raw.toarray()
