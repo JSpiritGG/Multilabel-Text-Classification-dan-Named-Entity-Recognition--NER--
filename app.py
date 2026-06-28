@@ -1034,11 +1034,9 @@ elif page == "🏷️ Multilabel Classification":
 
                 progress_bar.progress(30, text=f"Melatih model dengan {multilabel_strategy}...")
                 
-                try:
-                    from skmultilearn.problem_transform import BinaryRelevance, ClassifierChain, LabelPowerset
-                except ImportError:
-                    st.error("Library scikit-multilearn belum terinstall. Pastikan sudah menjalankan `pip install scikit-multilearn`.")
-                    st.stop()
+                # Gunakan sklearn-native multilabel strategies (tanpa library tambahan)
+                from sklearn.multiclass import OneVsRestClassifier
+                from sklearn.multioutput import ClassifierChain as SklearnChain
 
                 # Choose base model
                 if model_type == "Support Vector Machine (SVM)":
@@ -1051,15 +1049,17 @@ elif page == "🏷️ Multilabel Classification":
                     base_clf = MultinomialNB()
 
                 if multilabel_strategy == "Binary Relevance":
-                    clf = BinaryRelevance(base_clf)
+                    clf = OneVsRestClassifier(base_clf)
                 elif multilabel_strategy == "Classifier Chain":
-                    clf = ClassifierChain(base_clf)
+                    clf = SklearnChain(base_clf, order='random', random_state=42)
                 else:
-                    clf = LabelPowerset(base_clf)
+                    # Label Powerset tidak ada di sklearn, fallback ke OneVsRestClassifier
+                    clf = OneVsRestClassifier(base_clf)
+                    st.info("ℹ️ Label Powerset tidak tersedia di scikit-learn standar. Menggunakan Binary Relevance (OneVsRestClassifier) sebagai pengganti.")
 
                 clf.fit(X_train, y_train)
                 y_pred = clf.predict(X_test)
-                
+
                 # Convert sparse matrix to dense array if needed
                 if hasattr(y_pred, 'toarray'):
                     y_pred_array = y_pred.toarray()
