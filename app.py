@@ -876,11 +876,11 @@ elif page == "🏷️ Multilabel Classification":
 
                 # Choose base model
                 if model_type == "Support Vector Machine (SVM)":
-                    base_clf = LinearSVC(max_iter=10000, random_state=42)
+                    base_clf = LinearSVC(max_iter=10000, random_state=42, class_weight='balanced')
                 elif model_type == "Random Forest":
-                    base_clf = RandomForestClassifier(n_estimators=100, random_state=42, n_jobs=-1)
+                    base_clf = RandomForestClassifier(n_estimators=100, random_state=42, n_jobs=-1, class_weight='balanced')
                 elif model_type == "Logistic Regression":
-                    base_clf = LogisticRegression(max_iter=1000, random_state=42)
+                    base_clf = LogisticRegression(max_iter=1000, random_state=42, class_weight='balanced')
                 else:
                     base_clf = MultinomialNB()
 
@@ -1247,7 +1247,7 @@ elif page == "🚀 Demo Prediksi":
                 if col in train_df.columns:
                     target_cols.append(col)
 
-        clf = BinaryRelevance(LinearSVC(max_iter=10000, random_state=42))
+        clf = BinaryRelevance(LinearSVC(max_iter=10000, random_state=42, class_weight='balanced'))
         clf.fit(X_train, train_df[target_cols].values)
 
         return vectorizer, clf, target_cols
