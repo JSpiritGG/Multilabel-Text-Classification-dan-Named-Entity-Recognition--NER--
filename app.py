@@ -1,19 +1,8 @@
-"""
-==========================================================================
-  ABSA dari Review Google Places:
-  Multilabel Text Classification & Named Entity Recognition (NER)
-==========================================================================
-  Streamlit Application
-  Mata Kuliah: Pemrosesan Bahasa Alami - UAS
-==========================================================================
-"""
-
 import streamlit as st
 import pandas as pd
 import numpy as np
 import os
 
-# ─────────────────── Page Config ───────────────────
 st.set_page_config(
     page_title="ABSA - Multilabel Classification & NER",
     page_icon="🔍",
@@ -21,7 +10,6 @@ st.set_page_config(
     initial_sidebar_state="expanded",
 )
 
-# ─────────────────── Custom CSS ───────────────────
 st.markdown("""
 <style>
     @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
@@ -269,59 +257,170 @@ ASPECT_COLORS = {
 # ─────────────────── NER Logic ───────────────────
 import re
 
-BRAND_ENTITIES = {
-    'zano', 'hos of shopaholic', 'hos', 'shopaholic', 'uniqlo', 'zara',
-    'h&m', 'matahari', 'ramayana', 'borma', 'erigo', '3second', 'greenlight',
-    'levis', 'adidas', 'nike', 'puma', 'champion'
-}
+# ─────────────────── NER Logic (ML Model) ───────────────────
+import re
 
-PRODUCT_ENTITIES = {
-    'baju', 'kaos', 'kemeja', 'celana', 'rok', 'jaket', 'sweater', 'hoodie',
-    'dress', 'gamis', 'tunik', 'blouse', 'jas', 'pakaian', 'outfit', 'jeans',
-    'chino', 'kulot', 'legging', 'kain', 'bahan'
-}
+@st.cache_resource
+def load_ner_model():
+    """Load the best NER model from joblib."""
+    try:
+        import joblib
+        base_path = os.path.join(os.path.dirname(__file__), 'models')
+        data = joblib.load(os.path.join(base_path, 'Kelp2_best_ner_model.joblib'))
+        return data
+    except Exception as e:
+        return None
 
-LOCATION_ENTITIES = {
-    'jakarta', 'bandung', 'surabaya', 'bali', 'jogja', 'yogyakarta',
-    'semarang', 'medan', 'makassar', 'palembang', 'malang', 'solo',
-    'denpasar', 'tasikmalaya', 'mall', 'plaza', 'toko', 'butik',
-    'outlet', 'store', 'cabang'
-}
+def extract_features_for_token(tokens, idx):
+    """Replicate the feature extraction used during NER training (window-based)."""
+    token = tokens[idx]
+    features = {
+        'token': token.lower(),
+        'is_upper': token.isupper(),
+        'is_title': token.istitle(),
+        'prefix2': token[:2].lower(),
+        'prefix3': token[:3].lower(),
+        'suffix2': token[-2:].lower(),
+        'suffix3': token[-3:].lower(),
+        'has_digit': any(c.isdigit() for c in token),
+        'token_len': len(token),
+    }
+    if idx > 0:
+        prev = tokens[idx - 1]
+        features['prev_token'] = prev.lower()
+        features['prev_is_title'] = prev.istitle()
+    else:
+        features['BOS'] = True
+    if idx < len(tokens) - 1:
+        nxt = tokens[idx + 1]
+        features['next_token'] = nxt.lower()
+        features['next_is_title'] = nxt.istitle()
+    else:
+        features['EOS'] = True
+    return features
 
-ASPECT_TERM_ENTITIES = {
-    'harga', 'murah', 'mahal', 'diskon', 'promo', 'promosi', 'sale',
-    'kualitas', 'bagus', 'jelek', 'awet', 'luntur', 'sobek', 'jahitan',
-    'pelayanan', 'ramah', 'kasir', 'pramuniaga', 'mbak', 'mas', 'layan',
-    'tempat', 'bersih', 'kotor', 'luas', 'sempit', 'nyaman', 'parkir',
-    'fitting room', 'kamar ganti', 'koleksi', 'lengkap', 'ukuran', 'size'
-}
+def bio_to_entities(tokens, tags, original_text):
+    """Convert BIO token tags back to entity spans in original text."""
+    entities = []
+    i = 0
+    char_pos = 0
+    token_offsets = []
+    for tok in tokens:
+        start = original_text.lower().find(tok.lower(), char_pos)
+        if start == -1:
+            start = char_pos
+        end = start + len(tok)
+        token_offsets.append((start, end))
+        char_pos = end
+
+    current_entity = None
+    for i, (tok, tag) in enumerate(zip(tokens, tags)):
+        if tag.startswith('B-'):
+            if current_entity:
+                entities.append(current_entity)
+            label_parts = tag[2:].split('_')  
+            label = tag[2:] 
+            display_label = _bio_label_to_display(label)
+            start, end = token_offsets[i]
+            current_entity = {
+                'start': start,
+                'end': end,
+                'label': display_label,
+                'text': original_text[start:end]
+            }
+        elif tag.startswith('I-') and current_entity:
+            start, end = token_offsets[i]
+            current_entity['end'] = end
+            current_entity['text'] = original_text[current_entity['start']:end]
+        else:
+            if current_entity:
+                entities.append(current_entity)
+                current_entity = None
+    if current_entity:
+        entities.append(current_entity)
+    return entities
+
+def _bio_label_to_display(label):
+    """Map BIO label (e.g. PRODUCT_NEGATIVE) to display category."""
+    label_upper = label.upper()
+    if 'PRODUCT' in label_upper:
+        return 'PRODUCT'
+    elif 'PLACE' in label_upper or 'LOCATION' in label_upper:
+        return 'LOCATION'
+    elif 'PRICE' in label_upper:
+        return 'PRICE'
+    elif 'PROMOTION' in label_upper or 'SERVICE' in label_upper:
+        return 'SERVICE'
+    elif 'BRAND' in label_upper:
+        return 'BRAND'
+    else:
+        return 'ASPECT'
 
 def extract_entities(text):
+    """Extract entities using the best NER ML model (SGD + DictVectorizer)."""
+    ner_data = load_ner_model()
+
+    if ner_data is None:
+        return _extract_entities_fallback(text)
+
+    try:
+        classifier = ner_data.get('classifier')
+        vectorizer = ner_data.get('vectorizer') 
+        if classifier is None or vectorizer is None:
+            return _extract_entities_fallback(text)
+
+        tokens = text.split()
+        if not tokens:
+            return []
+
+        features = [extract_features_for_token(tokens, i) for i in range(len(tokens))]
+        X = vectorizer.transform(features)
+        tags = classifier.predict(X)
+
+        entities = bio_to_entities(tokens, tags, text)
+        return sorted(entities, key=lambda x: x['start'])
+
+    except Exception:
+        return _extract_entities_fallback(text)
+
+def _extract_entities_fallback(text):
+    """Fallback rule-based NER in case model is unavailable."""
+    BRAND_ENTITIES = {
+        'zano', 'hos of shopaholic', 'hos', 'shopaholic', 'uniqlo', 'zara',
+        'h&m', 'matahari', 'ramayana', 'borma', 'erigo', '3second', 'greenlight',
+        'levis', 'adidas', 'nike', 'puma', 'champion'
+    }
+    PRODUCT_ENTITIES = {
+        'baju', 'kaos', 'kemeja', 'celana', 'rok', 'jaket', 'sweater', 'hoodie',
+        'dress', 'gamis', 'tunik', 'blouse', 'jas', 'pakaian', 'outfit', 'jeans',
+        'chino', 'kulot', 'legging', 'kain', 'bahan'
+    }
+    LOCATION_ENTITIES = {
+        'jakarta', 'bandung', 'surabaya', 'bali', 'jogja', 'yogyakarta', 'semarang',
+        'medan', 'makassar', 'palembang', 'malang', 'solo', 'denpasar', 'tasikmalaya',
+        'mall', 'plaza', 'toko', 'butik', 'outlet', 'store', 'cabang'
+    }
+    ASPECT_TERM_ENTITIES = {
+        'harga', 'murah', 'mahal', 'diskon', 'promo', 'promosi', 'sale',
+        'kualitas', 'bagus', 'jelek', 'awet', 'luntur', 'sobek', 'jahitan',
+        'pelayanan', 'ramah', 'kasir', 'pramuniaga', 'mbak', 'mas', 'layan',
+        'tempat', 'bersih', 'kotor', 'luas', 'sempit', 'nyaman', 'parkir',
+        'fitting room', 'kamar ganti', 'koleksi', 'lengkap', 'ukuran', 'size'
+    }
     text_lower = text.lower()
     entities = []
-    
-    # Helper for adding entities
+
     def add_entity(entity_type, word):
-        # Find all occurrences of the word
         for match in re.finditer(rf'\b{re.escape(word)}\b', text_lower):
-            start = match.start()
-            end = match.end()
-            # Avoid overlaps
+            start, end = match.start(), match.end()
             overlap = any(start < e['end'] and end > e['start'] for e in entities)
             if not overlap:
-                entities.append({
-                    'start': start,
-                    'end': end,
-                    'label': entity_type,
-                    'text': text[start:end]
-                })
+                entities.append({'start': start, 'end': end, 'label': entity_type, 'text': text[start:end]})
 
-    # Sort entities by length descending to match longest phrases first
     for word in sorted(BRAND_ENTITIES, key=len, reverse=True): add_entity('BRAND', word)
     for word in sorted(PRODUCT_ENTITIES, key=len, reverse=True): add_entity('PRODUCT', word)
     for word in sorted(LOCATION_ENTITIES, key=len, reverse=True): add_entity('LOCATION', word)
     for word in sorted(ASPECT_TERM_ENTITIES, key=len, reverse=True): add_entity('ASPECT', word)
-    
     return sorted(entities, key=lambda x: x['start'])
 
 def render_ner_html(text, entities):
@@ -353,11 +452,9 @@ def render_ner_html(text, entities):
             border_color = '#e5e7eb'
             text_color = '#374151'
             
-        # Add text before entity
         if ent['start'] > last_end:
             html_parts.append(text[last_end:ent['start']])
             
-        # Add highlighted entity
         html_parts.append(
             f'<span style="background:{bg_color}; color:{text_color}; '
             f'border:1px solid {border_color}; padding:2px 6px; '
@@ -368,7 +465,7 @@ def render_ner_html(text, entities):
         )
         last_end = ent['end']
         
-    # Add remaining text
+
     if last_end < len(text):
         html_parts.append(text[last_end:])
         
@@ -1225,32 +1322,27 @@ elif page == "🚀 Demo Prediksi":
 
     # ─── Quick Train if needed ───
     @st.cache_resource
-    def train_quick_model():
-        """Train a quick model for demo purposes."""
-        from sklearn.feature_extraction.text import TfidfVectorizer
-        from sklearn.svm import LinearSVC
-        from skmultilearn.problem_transform import BinaryRelevance
-
+    def load_best_multilabel_model():
+        """Load the best multilabel model from joblib (no retraining)."""
         try:
-            base_path = os.path.join(os.path.dirname(__file__), 'dataset')
-            train_df = pd.read_csv(os.path.join(base_path, 'Kelp2_multilabel_train.csv'))
-        except FileNotFoundError:
-            return None, None, None
+            import joblib
+            base_path = os.path.join(os.path.dirname(__file__), 'models')
+            data = joblib.load(os.path.join(base_path, 'Kelp2_best_multilabel_model.joblib'))
+            # data is a dict with keys: 'pipeline', 'thresholds', 'target_cols', etc.
+            pipeline = data.get('pipeline') or data.get('model') or data
+            thresholds = data.get('thresholds', {})
+            target_cols = data.get('target_cols') or data.get('labels') or []
+            # If target_cols not in file, reconstruct from ASPECT_COLUMNS
+            if not target_cols:
+                target_cols = []
+                for a in ASPECT_COLUMNS:
+                    for s in SENTIMENT_LABELS:
+                        col = f"{a}_{s}"
+                        target_cols.append(col)
+            return pipeline, thresholds, target_cols
+        except Exception as e:
+            return None, {}, []
 
-        vectorizer = TfidfVectorizer(max_features=5000)
-        X_train = vectorizer.fit_transform(train_df['text'].astype(str))
-
-        target_cols = []
-        for a in ASPECT_COLUMNS:
-            for s in SENTIMENT_LABELS:
-                col = f"{a}_{s}"
-                if col in train_df.columns:
-                    target_cols.append(col)
-
-        clf = BinaryRelevance(LinearSVC(max_iter=10000, random_state=42, class_weight='balanced'))
-        clf.fit(X_train, train_df[target_cols].values)
-
-        return vectorizer, clf, target_cols
 
     st.markdown('<div class="section-header">✍️ Masukkan Review</div>', unsafe_allow_html=True)
 
@@ -1284,19 +1376,31 @@ elif page == "🚀 Demo Prediksi":
             st.markdown("---")
 
             with st.spinner("🔄 Memproses prediksi..."):
-                vectorizer, clf, target_cols = train_quick_model()
+                pipeline, thresholds, target_cols = load_best_multilabel_model()
 
-                if vectorizer is None:
-                    st.error("Dataset tidak ditemukan untuk training model demo.")
+                if pipeline is None:
+                    st.error("❌ Model terbaik tidak ditemukan. Pastikan file `models/Kelp2_best_multilabel_model.joblib` tersedia.")
                     st.stop()
 
-                # Predict
-                X_input = vectorizer.transform([text_to_analyze])
-                y_pred = clf.predict(X_input)
-                if hasattr(y_pred, 'toarray'):
-                    y_pred = y_pred.toarray()[0]
-                else:
-                    y_pred = np.array(y_pred)[0]
+                # Predict using best pipeline
+                import numpy as np
+                X_input = pipeline[:-1].transform([text_to_analyze]) if hasattr(pipeline, '__len__') else None
+                try:
+                    # Try pipeline.predict_proba for threshold-based prediction
+                    proba = pipeline.predict_proba([text_to_analyze])
+                    if hasattr(proba, 'toarray'):
+                        proba = proba.toarray()
+                    proba = np.array(proba)
+                    if thresholds and len(thresholds) == proba.shape[1]:
+                        thresh_arr = np.array([thresholds.get(col, 0.5) for col in target_cols])
+                        y_pred = (proba[0] >= thresh_arr).astype(int)
+                    else:
+                        y_pred = (proba[0] >= 0.5).astype(int)
+                except Exception:
+                    raw = pipeline.predict([text_to_analyze])
+                    if hasattr(raw, 'toarray'):
+                        raw = raw.toarray()
+                    y_pred = np.array(raw).flatten()
 
                 predictions = {}
                 for idx, col in enumerate(target_cols):
