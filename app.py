@@ -1477,13 +1477,18 @@ elif page == "🚀 Demo Prediksi":
                 predictions = {}
                 for idx, col in enumerate(target_cols):
                     if y_pred[idx] == 1:
-                        parts = col.rsplit('_', 1)
-                        if len(parts) != 2:
+                        # Skip non-aspect columns like OUT_OF_TOPIC
+                        matched = False
+                        for asp in ASPECT_COLUMNS:
+                            if col.startswith(asp + '_'):
+                                sentiment = col[len(asp) + 1:]
+                                if asp not in predictions:
+                                    predictions[asp] = []
+                                predictions[asp].append(sentiment.lower())
+                                matched = True
+                                break
+                        if not matched:
                             continue
-                        aspect, sentiment = parts
-                        if aspect not in predictions:
-                            predictions[aspect] = []
-                        predictions[aspect].append(sentiment.lower())
 
                 # NER
                 entities = extract_entities(text_to_analyze)
@@ -1534,6 +1539,8 @@ elif page == "🚀 Demo Prediksi":
                                 sent_badge += '<span style="margin-left: 4px; padding: 4px 10px; border-radius: 6px; background: #d1fae5; color: #065f46; font-size: 0.8rem; font-weight: 600;">✅ Positive</span>'
                             elif sent == 'negative':
                                 sent_badge += '<span style="margin-left: 4px; padding: 4px 10px; border-radius: 6px; background: #fee2e2; color: #991b1b; font-size: 0.8rem; font-weight: 600;">❌ Negative</span>'
+                            elif sent == 'neutral':
+                                sent_badge += '<span style="margin-left: 4px; padding: 4px 10px; border-radius: 6px; background: #f3f4f6; color: #6b7280; font-size: 0.8rem; font-weight: 600;">➖ Neutral</span>'
 
                     # Build entity tags HTML
                     entity_tags_html = ""
