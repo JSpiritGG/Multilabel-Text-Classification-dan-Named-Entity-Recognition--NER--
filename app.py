@@ -1,8 +1,19 @@
+"""
+==========================================================================
+  ABSA dari Review Google Places:
+  Multilabel Text Classification & Named Entity Recognition (NER)
+==========================================================================
+  Streamlit Application
+  Mata Kuliah: Pemrosesan Bahasa Alami - UAS
+==========================================================================
+"""
+
 import streamlit as st
 import pandas as pd
 import numpy as np
 import os
 
+# ─────────────────── Page Config ───────────────────
 st.set_page_config(
     page_title="ABSA - Multilabel Classification & NER",
     page_icon="🔍",
@@ -10,6 +21,7 @@ st.set_page_config(
     initial_sidebar_state="expanded",
 )
 
+# ─────────────────── Custom CSS ───────────────────
 st.markdown("""
 <style>
     @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
@@ -272,37 +284,90 @@ def load_ner_model():
         return None
 
 def extract_features_for_token(tokens, idx):
-    """Replicate the feature extraction used during NER training (window-based)."""
+    """
+    Replicate feature extraction from NER training:
+    Token identity, prefix/suffix, token shape, left-right context,
+    bigram/trigram context, majority-tag gazetteer.
+    """
     token = tokens[idx]
+    tok_lower = token.lower()
+
+    def shape(t):
+        s = re.sub(r'[A-Z]', 'X', t)
+        s = re.sub(r'[a-z]', 'x', s)
+        s = re.sub(r'[0-9]', 'd', s)
+        return s
+
     features = {
-        'token': token.lower(),
+        # Token identity
+        'tok': tok_lower,
+        'tok_lower': tok_lower,
+        # Casing
         'is_upper': token.isupper(),
         'is_title': token.istitle(),
-        'prefix2': token[:2].lower(),
-        'prefix3': token[:3].lower(),
-        'suffix2': token[-2:].lower(),
-        'suffix3': token[-3:].lower(),
+        'is_lower': token.islower(),
+        # Prefix / suffix
+        'pref1': tok_lower[:1],
+        'pref2': tok_lower[:2],
+        'pref3': tok_lower[:3],
+        'suf1': tok_lower[-1:],
+        'suf2': tok_lower[-2:],
+        'suf3': tok_lower[-3:],
+        # Token shape
+        'shape': shape(token),
+        # Digit / hyphen / special
         'has_digit': any(c.isdigit() for c in token),
-        'token_len': len(token),
+        'has_hyphen': '-' in token,
+        'is_digit': token.isdigit(),
+        'tok_len': len(token),
     }
-    if idx > 0:
-        prev = tokens[idx - 1]
-        features['prev_token'] = prev.lower()
-        features['prev_is_title'] = prev.istitle()
-    else:
+
+    # BOS/EOS
+    if idx == 0:
         features['BOS'] = True
-    if idx < len(tokens) - 1:
-        nxt = tokens[idx + 1]
-        features['next_token'] = nxt.lower()
-        features['next_is_title'] = nxt.istitle()
-    else:
+    if idx == len(tokens) - 1:
         features['EOS'] = True
+
+    # Left context (window -2, -1)
+    for offset, name in [(-2, 'w-2'), (-1, 'w-1')]:
+        j = idx + offset
+        if j >= 0:
+            t = tokens[j].lower()
+            features[f'{name}:tok'] = t
+            features[f'{name}:is_title'] = tokens[j].istitle()
+            features[f'{name}:suf2'] = t[-2:]
+        else:
+            features[f'{name}:BOS'] = True
+
+    # Right context (window +1, +2)
+    for offset, name in [(1, 'w+1'), (2, 'w+2')]:
+        j = idx + offset
+        if j < len(tokens):
+            t = tokens[j].lower()
+            features[f'{name}:tok'] = t
+            features[f'{name}:is_title'] = tokens[j].istitle()
+            features[f'{name}:suf2'] = t[-2:]
+        else:
+            features[f'{name}:EOS'] = True
+
+    # Bigram context (current + neighbors)
+    if idx > 0:
+        features['bigram_l'] = tokens[idx-1].lower() + '_' + tok_lower
+    if idx < len(tokens) - 1:
+        features['bigram_r'] = tok_lower + '_' + tokens[idx+1].lower()
+
+    # Trigram context
+    if idx > 0 and idx < len(tokens) - 1:
+        features['trigram'] = tokens[idx-1].lower() + '_' + tok_lower + '_' + tokens[idx+1].lower()
+
     return features
+
 
 def bio_to_entities(tokens, tags, original_text):
     """Convert BIO token tags back to entity spans in original text."""
     entities = []
     i = 0
+    # Reconstruct char offsets by scanning original_text
     char_pos = 0
     token_offsets = []
     for tok in tokens:
@@ -318,8 +383,9 @@ def bio_to_entities(tokens, tags, original_text):
         if tag.startswith('B-'):
             if current_entity:
                 entities.append(current_entity)
-            label_parts = tag[2:].split('_')  
-            label = tag[2:] 
+            label_parts = tag[2:].split('_')  # e.g. PRODUCT_NEGATIVE → label=PRODUCT_NEGATIVE
+            # Map compound BIO tags to display labels
+            label = tag[2:]  # full label like PRODUCT_NEGATIVE, PLACE_POSITIVE, etc.
             display_label = _bio_label_to_display(label)
             start, end = token_offsets[i]
             current_entity = {
@@ -360,12 +426,13 @@ def extract_entities(text):
     """Extract entities using the best NER ML model (SGD + DictVectorizer)."""
     ner_data = load_ner_model()
 
+    # Fallback to rule-based if model not available
     if ner_data is None:
         return _extract_entities_fallback(text)
 
     try:
         classifier = ner_data.get('classifier')
-        vectorizer = ner_data.get('vectorizer') 
+        vectorizer = ner_data.get('vectorizer')  # DictVectorizer
         if classifier is None or vectorizer is None:
             return _extract_entities_fallback(text)
 
@@ -452,9 +519,11 @@ def render_ner_html(text, entities):
             border_color = '#e5e7eb'
             text_color = '#374151'
             
+        # Add text before entity
         if ent['start'] > last_end:
             html_parts.append(text[last_end:ent['start']])
             
+        # Add highlighted entity
         html_parts.append(
             f'<span style="background:{bg_color}; color:{text_color}; '
             f'border:1px solid {border_color}; padding:2px 6px; '
@@ -465,7 +534,7 @@ def render_ner_html(text, entities):
         )
         last_end = ent['end']
         
-
+    # Add remaining text
     if last_end < len(text):
         html_parts.append(text[last_end:])
         
@@ -1328,20 +1397,26 @@ elif page == "🚀 Demo Prediksi":
             import joblib
             base_path = os.path.join(os.path.dirname(__file__), 'models')
             data = joblib.load(os.path.join(base_path, 'Kelp2_best_multilabel_model.joblib'))
-            # data is a dict with keys: 'pipeline', 'thresholds', 'target_cols', etc.
             pipeline = data.get('pipeline') or data.get('model') or data
-            thresholds = data.get('thresholds', {})
+            raw_thresholds = data.get('thresholds', {})
+            # Normalize: if thresholds is a list, convert to dict using target_cols
+            if isinstance(raw_thresholds, (list, np.ndarray)) and target_cols:
+                thresholds = {col: float(t) for col, t in zip(target_cols, raw_thresholds)}
+            elif isinstance(raw_thresholds, dict):
+                thresholds = raw_thresholds
+            else:
+                thresholds = {}
             target_cols = data.get('target_cols') or data.get('labels') or []
-            # If target_cols not in file, reconstruct from ASPECT_COLUMNS
+            score_type = data.get('score_type', 'predict_proba') if isinstance(data, dict) else 'predict_proba'
             if not target_cols:
                 target_cols = []
                 for a in ASPECT_COLUMNS:
                     for s in SENTIMENT_LABELS:
                         col = f"{a}_{s}"
                         target_cols.append(col)
-            return pipeline, thresholds, target_cols
+            return pipeline, thresholds, target_cols, score_type
         except Exception as e:
-            return None, {}, []
+            return None, {}, [], 'predict_proba'
 
 
     st.markdown('<div class="section-header">✍️ Masukkan Review</div>', unsafe_allow_html=True)
@@ -1376,7 +1451,7 @@ elif page == "🚀 Demo Prediksi":
             st.markdown("---")
 
             with st.spinner("🔄 Memproses prediksi..."):
-                pipeline, thresholds, target_cols = load_best_multilabel_model()
+                pipeline, thresholds, target_cols, score_type = load_best_multilabel_model()
 
                 if pipeline is None:
                     st.error("❌ Model terbaik tidak ditemukan. Pastikan file `models/Kelp2_best_multilabel_model.joblib` tersedia.")
@@ -1384,18 +1459,25 @@ elif page == "🚀 Demo Prediksi":
 
                 # Predict using best pipeline
                 import numpy as np
-                X_input = pipeline[:-1].transform([text_to_analyze]) if hasattr(pipeline, '__len__') else None
                 try:
-                    # Try pipeline.predict_proba for threshold-based prediction
-                    proba = pipeline.predict_proba([text_to_analyze])
-                    if hasattr(proba, 'toarray'):
-                        proba = proba.toarray()
-                    proba = np.array(proba)
-                    if thresholds and len(thresholds) == proba.shape[1]:
-                        thresh_arr = np.array([thresholds.get(col, 0.5) for col in target_cols])
-                        y_pred = (proba[0] >= thresh_arr).astype(int)
+                    # score_type already loaded from joblib via load_best_multilabel_model()
+                    # Use decision_function for LinearSVC-based models
+                    if score_type == 'decision_function' or not hasattr(pipeline, 'predict_proba'):
+                        scores = pipeline.decision_function([text_to_analyze])
+                        scores = np.array(scores)
+                        if scores.ndim == 1:
+                            scores = scores.reshape(1, -1)
                     else:
-                        y_pred = (proba[0] >= 0.5).astype(int)
+                        scores = pipeline.predict_proba([text_to_analyze])
+                        if hasattr(scores, 'toarray'):
+                            scores = scores.toarray()
+                        scores = np.array(scores)
+                    if thresholds and len(thresholds) == scores.shape[1]:
+                        thresh_arr = np.array([thresholds.get(col, 0.0 if score_type == 'decision_function' else 0.5) for col in target_cols])
+                        y_pred = (scores[0] >= thresh_arr).astype(int)
+                    else:
+                        default_t = 0.0 if score_type == 'decision_function' else 0.5
+                        y_pred = (scores[0] >= default_t).astype(int)
                 except Exception:
                     raw = pipeline.predict([text_to_analyze])
                     if hasattr(raw, 'toarray'):
@@ -1405,13 +1487,15 @@ elif page == "🚀 Demo Prediksi":
                 predictions = {}
                 for idx, col in enumerate(target_cols):
                     if y_pred[idx] == 1:
-                        aspect, sentiment = col.split('_', 1)
+                        aspect, sentiment = col.split('_')
                         if aspect not in predictions:
                             predictions[aspect] = []
                         predictions[aspect].append(sentiment.lower())
 
+                # NER
                 entities = extract_entities(text_to_analyze)
 
+            # ─── Map NER entities to aspects ───
             ASPECT_ENTITY_MAP = {
                 'PRODUCT': {'PRODUCT', 'BRAND'},
                 'PRICE': set(),
