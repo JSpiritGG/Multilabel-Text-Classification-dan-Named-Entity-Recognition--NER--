@@ -1,11 +1,11 @@
 {
   "model": "Feature_SGD_TokenClassifier",
   "split": "test",
-  "micro_precision_non_o": 0.6610738255033557,
-  "micro_recall_non_o": 0.582552981764416,
-  "micro_f1_non_o": 0.6193345559339796,
-  "macro_precision_non_o": 0.3331440761928676,
-  "macro_recall_non_o": 0.27980856605433896,
-  "macro_f1_non_o": 0.2967699498271724,
-  "token_accuracy_all_tags": 0.6475511469311841
+  "micro_precision_non_o": 0.5763430725730443,
+  "micro_recall_non_o": 0.6027599802858551,
+  "micro_f1_non_o": 0.5892556010599855,
+  "macro_precision_non_o": 0.35471626469486056,
+  "macro_recall_non_o": 0.4350604109905089,
+  "macro_f1_non_o": 0.35310449832611923,
+  "token_accuracy_all_tags": 0.6069435833849969
 }

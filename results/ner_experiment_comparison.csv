@@ -1,4 +1,4 @@
 model,split,micro_f1_non_o,macro_f1_non_o
 BiLSTM token classification,test,0.444530794637653,0.1465976450022794
-Feature_SGD_TokenClassifier,validation,0.7606574216743708,0.45121273560487996
-Feature_SGD_TokenClassifier,test,0.6193345559339796,0.2967699498271724
+Feature_SGD_TokenClassifier,validation,0.6896875734085036,0.5064531587180232
+Feature_SGD_TokenClassifier,test,0.5892556010599855,0.35310449832611923

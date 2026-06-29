@@ -273,88 +273,74 @@ def load_ner_model():
     except Exception as e:
         return None
 
-def extract_features_for_token(tokens, idx):
-    """
-    Replicate feature extraction from NER training:
-    Token identity, prefix/suffix, token shape, left-right context,
-    bigram/trigram context, majority-tag gazetteer.
-    """
-    token = tokens[idx]
-    tok_lower = token.lower()
+def _ner_token_shape(token):
+    """Token shape EXACTLY as in training (collapsed a/d/p runs)."""
+    parts = []
+    for ch in str(token):
+        if ch.isdigit():
+            c = 'd'
+        elif ch.isalpha():
+            c = 'a'
+        else:
+            c = 'p'
+        if not parts or parts[-1] != c:
+            parts.append(c)
+    return ''.join(parts)
 
-    def shape(t):
-        s = re.sub(r'[A-Z]', 'X', t)
-        s = re.sub(r'[a-z]', 'x', s)
-        s = re.sub(r'[0-9]', 'd', s)
-        return s
 
-    features = {
-        # Token identity
-        'tok': tok_lower,
-        'tok_lower': tok_lower,
-        # Casing
-        'is_upper': token.isupper(),
-        'is_title': token.istitle(),
-        'is_lower': token.islower(),
-        # Prefix / suffix
-        'pref1': tok_lower[:1],
-        'pref2': tok_lower[:2],
-        'pref3': tok_lower[:3],
-        'suf1': tok_lower[-1:],
-        'suf2': tok_lower[-2:],
-        'suf3': tok_lower[-3:],
-        # Token shape
-        'shape': shape(token),
-        # Digit / hyphen / special
-        'has_digit': any(c.isdigit() for c in token),
-        'has_hyphen': '-' in token,
-        'is_digit': token.isdigit(),
-        'tok_len': len(token),
+def extract_features_for_token(tokens, idx, majority_tag=None):
+    """
+    EXACT replica of `feature_token` from Kelp2_ner_modeling.ipynb (cell 56).
+    The DictVectorizer in the saved payload was fitted on these exact feature
+    keys, so any deviation (different key names, missing gazetteer, etc.) makes
+    transform() silently drop the columns to zero and breaks inference.
+    `majority_tag` is the gazetteer dict saved inside the joblib payload.
+    """
+    if majority_tag is None:
+        majority_tag = {}
+
+    token = str(tokens[idx]).lower()
+    n = len(tokens)
+    feats = {
+        'bias': 1,
+        'tok=' + token: 1,
+        'majority=' + majority_tag.get(token, 'UNK'): 1,
+        'prefix1=' + token[:1]: 1,
+        'prefix2=' + token[:2]: 1,
+        'prefix3=' + token[:3]: 1,
+        'prefix4=' + token[:4]: 1,
+        'suffix1=' + token[-1:]: 1,
+        'suffix2=' + token[-2:]: 1,
+        'suffix3=' + token[-3:]: 1,
+        'suffix4=' + token[-4:]: 1,
+        'shape=' + _ner_token_shape(token): 1,
+        'len=' + str(min(len(token), 12)): 1,
+        'has_digit=' + str(any(ch.isdigit() for ch in token)): 1,
+        'pos_bin=' + str(int(idx / max(1, n - 1) * 4)): 1,
     }
-
-    # BOS/EOS
-    if idx == 0:
-        features['BOS'] = True
-    if idx == len(tokens) - 1:
-        features['EOS'] = True
-
-    # Left context (window -2, -1)
-    for offset, name in [(-2, 'w-2'), (-1, 'w-1')]:
-        j = idx + offset
-        if j >= 0:
-            t = tokens[j].lower()
-            features[f'{name}:tok'] = t
-            features[f'{name}:is_title'] = tokens[j].istitle()
-            features[f'{name}:suf2'] = t[-2:]
+    for off in [-3, -2, -1, 1, 2, 3]:
+        j = idx + off
+        if 0 <= j < n:
+            ctx = str(tokens[j]).lower()
+            feats[f'w{off}=' + ctx] = 1
+            feats[f'majority{off}=' + majority_tag.get(ctx, 'UNK')] = 1
         else:
-            features[f'{name}:BOS'] = True
-
-    # Right context (window +1, +2)
-    for offset, name in [(1, 'w+1'), (2, 'w+2')]:
-        j = idx + offset
-        if j < len(tokens):
-            t = tokens[j].lower()
-            features[f'{name}:tok'] = t
-            features[f'{name}:is_title'] = tokens[j].istitle()
-            features[f'{name}:suf2'] = t[-2:]
-        else:
-            features[f'{name}:EOS'] = True
-
-    # Bigram context (current + neighbors)
+            feats[f'edge{off}'] = 1
     if idx > 0:
-        features['bigram_l'] = tokens[idx-1].lower() + '_' + tok_lower
-    if idx < len(tokens) - 1:
-        features['bigram_r'] = tok_lower + '_' + tokens[idx+1].lower()
-
-    # Trigram context
-    if idx > 0 and idx < len(tokens) - 1:
-        features['trigram'] = tokens[idx-1].lower() + '_' + tok_lower + '_' + tokens[idx+1].lower()
-
-    return features
+        feats['prev_cur=' + str(tokens[idx-1]).lower() + '_' + token] = 1
+    if idx < n - 1:
+        feats['cur_next=' + token + '_' + str(tokens[idx+1]).lower()] = 1
+    if 0 < idx < n - 1:
+        feats['tri=' + str(tokens[idx-1]).lower() + '_' + token + '_' + str(tokens[idx+1]).lower()] = 1
+    return feats
 
 
-def bio_to_entities(tokens, tags, original_text):
-    """Convert BIO token tags back to entity spans in original text."""
+def bio_to_entities(tokens, tags, original_text, confidences=None):
+    """Convert BIO token tags back to entity spans in original text.
+
+    `confidences` (optional): per-token max-probability array. When present,
+    each entity gets a 'confidence' field = mean confidence over its tokens.
+    """
     entities = []
     i = 0
     # Reconstruct char offsets by scanning original_text
@@ -368,13 +354,23 @@ def bio_to_entities(tokens, tags, original_text):
         token_offsets.append((start, end))
         char_pos = end
 
+    def conf_at(idx):
+        if confidences is None:
+            return None
+        try:
+            return float(confidences[idx])
+        except Exception:
+            return None
+
     current_entity = None
+    current_confs = []
     for i, (tok, tag) in enumerate(zip(tokens, tags)):
         if tag.startswith('B-'):
             if current_entity:
+                current_entity['confidence'] = (
+                    sum(current_confs) / len(current_confs) if current_confs else None
+                )
                 entities.append(current_entity)
-            label_parts = tag[2:].split('_')  # e.g. PRODUCT_NEGATIVE → label=PRODUCT_NEGATIVE
-            # Map compound BIO tags to display labels
             label = tag[2:]  # full label like PRODUCT_NEGATIVE, PLACE_POSITIVE, etc.
             display_label = _bio_label_to_display(label)
             start, end = token_offsets[i]
@@ -382,17 +378,29 @@ def bio_to_entities(tokens, tags, original_text):
                 'start': start,
                 'end': end,
                 'label': display_label,
-                'text': original_text[start:end]
+                'text': original_text[start:end],
+                'confidence': None,
             }
+            current_confs = [c for c in [conf_at(i)] if c is not None]
         elif tag.startswith('I-') and current_entity:
             start, end = token_offsets[i]
             current_entity['end'] = end
             current_entity['text'] = original_text[current_entity['start']:end]
+            c = conf_at(i)
+            if c is not None:
+                current_confs.append(c)
         else:
             if current_entity:
+                current_entity['confidence'] = (
+                    sum(current_confs) / len(current_confs) if current_confs else None
+                )
                 entities.append(current_entity)
                 current_entity = None
+                current_confs = []
     if current_entity:
+        current_entity['confidence'] = (
+            sum(current_confs) / len(current_confs) if current_confs else None
+        )
         entities.append(current_entity)
     return entities
 
@@ -423,6 +431,7 @@ def extract_entities(text):
     try:
         classifier = ner_data.get('classifier')
         vectorizer = ner_data.get('vectorizer')  # DictVectorizer
+        majority_tag = ner_data.get('majority_tag', {})  # gazetteer from training
         if classifier is None or vectorizer is None:
             return _extract_entities_fallback(text)
 
@@ -430,11 +439,20 @@ def extract_entities(text):
         if not tokens:
             return []
 
-        features = [extract_features_for_token(tokens, i) for i in range(len(tokens))]
+        features = [extract_features_for_token(tokens, i, majority_tag) for i in range(len(tokens))]
         X = vectorizer.transform(features)
         tags = classifier.predict(X)
 
-        entities = bio_to_entities(tokens, tags, text)
+        # Confidence per token (hanya jika model mendukung probabilitas, mis. loss='log_loss')
+        confidences = None
+        if ner_data.get('supports_proba') and hasattr(classifier, 'predict_proba'):
+            try:
+                proba = classifier.predict_proba(X)
+                confidences = proba.max(axis=1)
+            except Exception:
+                confidences = None
+
+        entities = bio_to_entities(tokens, tags, text, confidences)
         return sorted(entities, key=lambda x: x['start'])
 
     except Exception:
@@ -514,12 +532,15 @@ def render_ner_html(text, entities):
             html_parts.append(text[last_end:ent['start']])
             
         # Add highlighted entity
+        conf = ent.get('confidence')
+        conf_title = f' title="confidence: {conf*100:.1f}%"' if conf is not None else ''
+        conf_sup = f' · {conf*100:.0f}%' if conf is not None else ''
         html_parts.append(
-            f'<span style="background:{bg_color}; color:{text_color}; '
+            f'<span{conf_title} style="background:{bg_color}; color:{text_color}; '
             f'border:1px solid {border_color}; padding:2px 6px; '
             f'border-radius:4px; font-weight:600; margin:0 1px;">'
             f'{text[ent["start"]:ent["end"]]}'
-            f'<sup style="font-size:0.6rem; margin-left:2px; opacity:0.8;">{ent["label"]}</sup>'
+            f'<sup style="font-size:0.6rem; margin-left:2px; opacity:0.8;">{ent["label"]}{conf_sup}</sup>'
             f'</span>'
         )
         last_end = ent['end']
@@ -1243,12 +1264,15 @@ elif page == "📛 Named Entity Recognition":
                 st.markdown("#### 📋 Entitas Terdeteksi:")
                 ent_data = []
                 for ent in entities:
-                    ent_data.append({
+                    row = {
                         'Teks': ent['text'],
                         'Label': ent['label'],
                         'Posisi Awal': ent['start'],
                         'Posisi Akhir': ent['end'],
-                    })
+                    }
+                    if ent.get('confidence') is not None:
+                        row['Confidence'] = f"{ent['confidence']*100:.1f}%"
+                    ent_data.append(row)
                 ent_df = pd.DataFrame(ent_data)
                 st.dataframe(ent_df, use_container_width=True, hide_index=True)
 
@@ -1606,12 +1630,19 @@ elif page == "🚀 Demo Prediksi":
                             'ASPECT': ('🏷️', '#f3e8ff', '#6b21a8'),
                         }
                         emoji, bg, tc = label_colors.get(ent['label'], ('', '#f3f4f6', '#333'))
+                        conf = ent.get('confidence')
+                        conf_badge = (
+                            f'<span style="margin-left:auto; font-size:0.72rem; font-weight:600; '
+                            f'color:{tc}; opacity:0.85;">{conf*100:.0f}%</span>'
+                            if conf is not None else ''
+                        )
                         st.markdown(f"""
                         <div style="display:flex; align-items:center; gap:8px; margin:4px 0;
                                     padding:6px 10px; background:{bg}; border-radius:8px;">
                             <span>{emoji}</span>
                             <span style="font-weight:600; color:{tc};">{ent['text']}</span>
                             <span style="font-size:0.7rem; opacity:0.7;">({ent['label']})</span>
+                            {conf_badge}
                         </div>
                         """, unsafe_allow_html=True)
                 else:
